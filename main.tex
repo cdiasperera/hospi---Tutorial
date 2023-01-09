@@ -1,0 +1,46 @@
+\documentclass{article}
+% DOCUMENT CONFIG
+\newcommand{\disabletodos}[0]{} % Set to "disable" if you wish to turn off todonotes, otherwise set to "" to display todonotes
+\newcommand{\refstyle}[0]{alpha} % Set to "disable" if you wish to turn off todonotes, otherwise set to "" to display todonotes
+
+\input{preamble}
+
+\begin{document}
+\listoftodos
+
+\maketitle
+
+\newpage
+\tableofcontents
+\newpage
+
+\section*{How to read this tutorial}
+\input{howto}
+
+\newpage
+\section{Prelude}
+\import{prelude/}{main}
+
+\newpage
+\section{Formal syntaxes}
+\label{formsyn}
+\import{syntax/}{main}
+
+\newpage
+\section{Specification in Maude}
+\label{using}
+\import{spec/}{main}
+
+\newpage
+\section{Using (Higher Order) \texorpdfstring{$\pi$}{pi}-calculus in Maude}
+\import{using/}{main}
+
+\newpage
+\input{bibliography/bib}
+\newpage
+
+\newpage
+\appendix
+\newpage
+\import{appendices/}{main}
+\end{document}

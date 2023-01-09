@@ -1,0 +1,7 @@
+Finally, let us briefly discuss the language that the specification was written in Maude. Maude, broadly, is a rewriting system, taking sequences of characters and applying rules upon them. These rules can be written akin to reduction semantics present in a language, but one helpful feature of Maude is that these rules can also be applied non-determinstically, simulating the non-deterministic evolution process can have. Furthermore, the tree-like structure this non-determinism can be searched for specific states, which is useful for a myriad of reasons.
+
+\todo{Put example here}
+
+While these features are nice, it's somewhat plausible to implement them in a more familiar programming language. The primary reason is that (higher order)$\pi$-calculus, as well as the definition of its types, are written as a rewriting system, and implementing the syntax for either is as simple as writing the syntax almost verbatim (as you will see in section \ref{using}.
+
+The minimal set of syntax elements used required to use the implementation of $\pi$-calculus is presented in section \ref{minmaude}.

@@ -1,0 +1,23 @@
+\todo{Add disclaimer for interchanging threads / processes / agents}
+This tutorial is to teach readers how to use the specification of session-typed (higher order) $\pi$-calculus (as presented in Restrepo et al.\cite{main}) profitably for their own applications. We expect that the intended reader of this document to have at least completed two years of their Bachelor's programme in Computing Science, though no specific theory is required to follow this tutorial.
+
+However, we believe this tutorial is valuable to those with more experience with the study of $\pi$-calculus, all the way to readers who have the read the paper behind the specification. Thus we have separated this tutorial into four chapters, summarized in Table \ref{suggestedreading}. We have made suggestions as to which chapter a reader should join this tutorial, under a given presumption of prior knowledge.
+
+\begin{table}[H]
+\centering
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{|>{\raggedright}m{0.16\linewidth} | m{0.45\linewidth} | m{0.4\linewidth}|}
+\hline
+\textbf{Section} & \textbf{Description of Contents} & \textbf{Expected Readers} \\ \hline
+
+Prelude & This section contains a brief introduction to the underlying concepts behind both the theory of $\pi$-calculus to the implementation language (Maude) & Those with no knowledge of $\pi$-calculus. Readers unfamiliar with Maude will also benefit from reading section \ref{whatismaude}.\\ \hline
+Formal Syntaxes & This section serves as a presentation of the formal syntax used for (higher order) $\pi$-calculus, session types and Maude. Morever, it presents an informal intuition behind the syntax. & Those familiar with $\pi$-calculus but perhaps not higher-order $\pi$-calculus, session types or Maude. It also serves as a convenient reference for the reader to flip to, when reading section \ref{using}.\\ \hline
+Specification in Maude & This section documents to define, with the Maude specification, various processes of (higher order) $\pi$-calculus. Furthermore, it presents the functions used to check if a process is well-typed, as well as if a process leads to a deadlock. & Those who already understand session-typed (higher order) $\pi$-calculus, but not the specification of it in Maude. \\ \hline
+Using $\pi$-calculus in Maude & A series of examples demonstrating the specification, building upon a basic use-case. It demonstrates how each construct in (higher order) $\pi$-calculus can be implemented, typed and checked. It also contains an example of how a complex system can be checked for deadlocks. & Those who have read and understood Restrepo et al. \cite{main} \\ \hline
+
+\hline
+\end{tabular}
+\egroup
+\caption{\label{suggestedreading} Reading guide for this tutorial}
+\end{table}

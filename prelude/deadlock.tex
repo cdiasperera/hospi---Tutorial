@@ -1,0 +1,5 @@
+Deadlocks, in concurrent systems, is a state of a concurrent system where no process can make progress as it is waiting upon another resource. Since all resources are waiting, no progress is made in the system. A (live)lock is a state where the system is evolving but making no ``progress". Intuitively, there is some circular state change preventing some other aspect of the process from continuing.
+
+Naturally, (dead)locks in a system are undesirable and there is a rich theory \todo{Link theory} surrounding detecting, preventing and avoiding (dead)locks.
+
+Fantastically, the session typed (higher order) $\pi$-calculus actually does provide functions that, given some process, it can detect whether this process will actually (dead)lock. Again, this theory is not strictly necessary to using the implementation, and interested readers can find out more about it in appendix \ref{deadlocktheory}

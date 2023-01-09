@@ -1,0 +1,13 @@
+$\pi$-calculus is a process calculi, with an expressive syntax, which is discuss in part \ref{pisyn}. This section, however, serves to motivate it's usage and to describe it's core ideas and it's power.
+
+For many process calculi, we have the concept of channels, which can be thought of this bidirectional pathway between two processes. Through these channels, we pass in values, which is how we transfer information between two interacting processes. $\pi$-calculus is no different from other process calculi, in this sense.
+
+Where it does differ though, and where it gets its simplicity and power from, is that it can pass \textit{channels themselves}, to other process calculi. Conceptually, this isn't simply passing the location of another process (the other endpoint of the channel). It's also passing you \textit{the ability to send messages along this channel}.
+
+To observe the power of this ability, imagine a process modeling a server, which some connection to a resource, like a printer. The server can provide a channel to the printer, and a client can freely interact with this printer, without the server needing to act as an intermediary \footnote{At this point, the client also controls access to the printer, but it's not a problem, in terms of access rights. The printer and server can negotiate a protocol that allows the printer to give a new channel, cutting off existing channel access (by ignoring messages down that line)}.
+
+\subsection{What is Higher Order \texorpdfstring{$\pi$}{pi}-calculus?}
+\import{./}{hopi}
+
+\subsection{How do processes evolve?}
+\import{./}{reduc}
