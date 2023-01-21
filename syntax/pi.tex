@@ -109,7 +109,7 @@ $$(\rest xy)(\bar{x}v.P \mid \un y(z).Q \mid R) \ra (\rest xy)(P \mid Q[v/z]\mid
 
 This rule dictates the same semantics as the previous rule, with the exception that using $\un y(z).Q$ replicates it.
 
-The last rule we present for communication involves communication via labels\footnote{If you're unfamiliar with this notation $\frac{P}{Q}$, it simply shorthand for $P \Rightarrow Q$. Furthermore, large bodies of whitespace correspond to a conjunction. That is to say $\frac{P \quad Q}{R}$ is shorthand for $\frac{P \land Q}{R}$}:
+The last rule we present for communication involves communication via labels\footnote{If you're unfamiliar with this notation $\frac{P}{Q}$, it simply shorthand for $P \Rightarrow Q$. Furthermore, large bodies of whitespace correspond to a conjunction. That is to say $\frac{P \quad Q}{R}$ is shorthand for $\frac{P \land Q}{R}$. Finally, if you see $\frac{}{Q}$, this means that $Q$ is unconditionally true}:
 
 $$\frac{j \in I}{(\rest xy)(x \select l_j . P \mid y \offer \set{l_i : Q_i}_{i \in I} \mid R) \ra (\rest xy)(P \mid Q_j \mid R)}$$
 
@@ -189,9 +189,9 @@ So which values are in $fv(Q)$? We can perform this inductively, upon the struct
 \subsubsection{Typing rules}
 As mentioned earlier, our syntax surrounding $\pi$-calculus is too loose, in that they don't necessarily conform to our intuition behind their usage, or you can create processes that do nothing / don't make sense. To resolve this, we turn to typing.
 
-Now, we do not actually type processes. Rather, what we are (mainly) typing is the ``behavior" of channel endpoints themselves. That is, if we have some process, its free names must correspond to some protocol (as specified by the type of that endpoint). We consider this information (regarding channel typing) the ``context" of our process.
+Now, we do not actually type processes, since processes aren't true values of calculus. Rather, what we are (mainly) typing is the ``behavior" of channel endpoints themselves. That is, if we have some process, its free names must correspond to some protocol (as specified by the type of that endpoint). We consider this information (regarding channel typing) the ``context" of our process.
 
-Making sure that our processes satisfy its context is a recursive process, as processes are built on top of processes. As we delve deeper into a process to ensure it's satisfaction of a type, the context required for the evaluation will also change, and these modified contexts are what allows us to ensure the internal consistency of our processes\footnote{Note that this explanation might be too abstract, which is fine. It becomes clearer once you see the actual rules and some examples}.
+Making sure that our processes satisfy its context is a recursive process, as processes are built on top of processes. As we delve deeper into a process to ensure it's satisfaction of a type, the context required for the evaluation will also change\footnote{As a brief concrete example, evaluating the a process under restriction will bring the channel under restriction into the context, thus evolving our context.}, and these modified contexts are what allows us to ensure the internal consistency of our processes\footnote{Note that this explanation might be too abstract, which is fine. It becomes clearer once you see the actual rules and some examples}.
 
 Before we turn to typing, we will introduce one one concept upon channels. Recall we mentioned that free variables in a process need to correspond to some protocol. Some protocols require that a channel endpoint can only be used by \textbf{one} process. That is, it cannot jump between processes. To this end, we specify such endpoints with $\lin$, and other endpoints with $\un$.
 
@@ -217,7 +217,7 @@ If you consider it, these operations do not actually involve the usage of a chan
 However, the remaining operators (input / output / branching / selection ) \textit{do} involve the usage of a channel, and they have the following syntactic elements:
 
 $$
-T ::= !T_1.T_2 \mid \ ?T_1.T_2 \mid \&\set{l_i : T_i}_{i \in I} \mid \oplus \set{l_i : T_i}_{i \in I}
+p ::= !T_1.T_2 \mid \ ?T_1.T_2 \mid \&\set{l_i : T_i}_{i \in I} \mid \oplus \set{l_i : T_i}_{i \in I}
 $$
 
 If we have some statement $x : T$, with $T$ being some type form from above:
@@ -228,14 +228,169 @@ If we have some statement $x : T$, with $T$ being some type form from above:
     \item This channel outputs some label some label $l_i$, and then acts as $T_i$, for each $i \in I$.
 \end{itemize}
 
-If you read the last two type carelessly, you might be led to believe that a label has a type, but $T_i$ reflects the \textit{continuation type} of a channel, after the corresponding action has been taken.
+If you read the last two type carelessly, you might be led to believe that a label has a type, but $T_i$ reflects the \textit{continuation type} of a channel, after the corresponding action has been taken. Furthermore, for a selection type ($\oplus$), the type $T_i$ is the continuation type for the process that is doing the selection, and is not the continuation type for the other process that responds to the selection.
+
+Observe that we define $p$, but not additional elements of $T$. This is because all these operations act on a channel, which can be linear  or unrestricted. In this sense, it is a \textbf{pretype}.
+
+To use it, we have to combine it with a the linear ($\lin$) or unrestricted ($\un$) \textbf{qualifier}:
+
+$$
+T ::= q p
+$$
+
+Lastly, one might wonder how we type a process that is replicating (that is, has a $\un$ prefix). To do this, we essentially explicitly type it as such:
+
+$$
+T ::= \mu a.T
+$$
+
+This is relatively novel syntax, but essentially, it defines $a$ to be a type variable that may appear in $T$, that represents $T$ itself. So, for example
+
+$$
+\mu a. \un ? bool . a
+$$
+
+is equivalent to
+
+$$
+\mu a . \un ? bool . \un ? bool . a
+$$
+
+showing that we can endlessly replicate the $T$ part of $\mu a . T$, hence typing replication.
+
+Lastly, recall we spoke of a context. We formalize this notion in $\Gamma$, where $\Gamma$ is the context under which our typing rules are evaluated:
+
+$$
+\Gamma ::= \emptyset \mid \Gamma, x : T
+$$
+
+This reads that the base context is the empty set, and we can add to this context via appending the type of a value $x$.
+
+And thus, this defines our typing syntax!
+
 
 \textbf{Note: The rest of this subsection discusses and presents how typing rules actually enforce all the intuitions / assertions of the behavior of syntactic elements we've since discussed. It's not essential to read, but reading this section will probably fix any incorrect understanding of those intuitions. A more practical reader would probably skip this section and come back when a type doesn't seem to work as expected.}
 
-Before we begin, there are two points that should be made:
-\begin{itemize}
-    \item Recall that the only 
-\end{itemize}
+First, we will type actual values, such as channels and boolean values. Recall that processes aren't values themselves, in the sense you cannot pass processes through channels. Such typing rules will have form:
+
+$$
+\Gamma_1 \vdash v : T ; \Gamma_2
+$$
+
+where $v$ is either a channel variable or a boolean variable. This reads as: $v$ is typed as $T$, where with a ``remaining" context $\Gamma_2$. This principle here is that $\Gamma_2$ contains the context that the ``next" typing rule must be evaluated against. It's main purpose is to ensure if $x$ is a linear channel, $\Gamma_2$ does not contain a context that has $x$.
+
+The rules are as follows:
+\todo{Explain Rules}
+
+\begin{gather*}
+\frac{}{\Gamma \vdash \true : \bool ; \Gamma} \\
+\frac{}{\Gamma \vdash \false : \bool ; \Gamma} \\
+\frac{}{\Gamma_1, x : \lin p , \Gamma_2 \vdash x : \lin p; (\Gamma_1, \Gamma_2)} \\
+\frac{\unf{T}\footnote{This makes sure that $T$ is defined along a unrestricted channel or is a boolean value. See \ref{auxfunc} for details.}}{\Gamma_1, x : T , \Gamma_2 \vdash x : T; (\Gamma_1, x : T, \Gamma_2)} \\
+\end{gather*}
+
+Note that $\unf{T}$ is simply a function that ensures 
+
+The first two rules are fairly straight-forward. It says that it types $\true, \false$ as booleans. The latter two are what are of interest:
+\begin{enumerate}
+\item The third rule says that if $x$ if a linear endpoint in the input context, $x$ is typed as a linear endpoint. However, the output context does \textit{not} contain $x$. This is how we ensure that $x$ is used in a single process, since any other process that rely on $x$ will not contain $x$ in the context when typing the other processes.
+\item This rule basically ensures that $x$ is defined in the context, and since the output context contains $x$ it must also ensure that $x$ isn't a linear endpoint, which is what $\unf{T}$ does.
+\end{enumerate}
+
+Now, we will give the typing rules associated with processes. Recall that we do not type processes directly. The purpose of the subsequent typing process is two-fold.
+
+\begin{enumerate}
+
+\item These typing rules will define under what conditions a process may exist, based on our input context and process we are typing. This allows us to recursively check each condition to validate the typing rule. For example, suppose we were checking $(\rest xy) P$. One condition of the associated typing rule involves extending the input context to contain the restriction and then check if $P$ is a valid process.  
+\item These typing rules also define how a context evolves. For example, suppose we were type checking a parallel process $P \mid Q$. We will type check $P$ and $Q$ separately, but we ensure that the correct context is used to check $Q$ by evaluating $P$ first and using the ``remaining" context that it provides.
+\end{enumerate}
+
+To this end, the typing rules associated with processes are written as follows: $\Gamma_1 \vdash P : \Gamma_2 : L$, where $L$ is a set of variables. We read this as follows:
+\begin{quote}
+    If we type-check $P$ with context $\Gamma_1$, the remaining context is $\Gamma_2$ and $L$ contains all the variables consumed by $P$. The idea here is that $L$ is used in another typing rule to ensure that the variables in $L$ aren't used in that typing rule.
+\end{quote}
+
+
+As you encounter each typing rule (or pair of corresponding rules) we will provide an intuition behind the rule on how to read it, and the purpose of the rule, in terms of the behavior it is trying to enforce.
+\todo{Change this a bit}
+
+Because processes are written recursively, naturally the typing rules are written recursively. As $\ep$ is the base process, our first typing rule involves typing $\ep$, as you might expect:
+
+$$
+\Gamma \vdash \ep ; \Gamma ; \emptyset
+$$
+
+This rule is read as ``You can type $\ep$ with any context, with the remaining context being the input context, and it uses no linear variables".
+
+$$
+\frac{\Gamma_1 \vdash P : \Gamma_2 ; L_1 \quad \Gamma_2 \td L_1 \vdash Q : \Gamma_2 ; L_2}{\Gamma_1 \vdash P \mid Q : \Gamma_3 ; L_2}
+$$
+
+The idea behind this rule is that it types the two parallel processes independently, but it gets the set of linear variables used by $P$ and makes sure that $Q$ can be typed correctly without having that variable in the context.
+
+$$
+\frac{\Gamma_1, x : T, y : \bar{T} \vdash P : \Gamma_2 ; L}{\Gamma_1 \vdash (\rest xy : T) P : \Gamma_2 \td \set{x,y} ; L \setminus \set{x,y}}
+$$
+
+The idea here is that to type a process under restriction, if we lift those channels endpoints to the greater context, it should be able to type the inner process. Observe that $(\rest xy : T)$. To improve the efficiency of the type-checking algorithm, we must supply the type of the restricted channel endpoints when we check our process. In principle, we should know this when we type our process, since we should be using our restricted channel inside $P$, and we type $T$ along how it's used in $P$.
+
+$$
+\frac{\Gamma_1 \vdash v : q\  \bool ; \Gamma_2 \quad \Gamma_2 \vdash P : \Gamma_3 ; L \quad \Gamma_2 \vdash Q : \Gamma_3 ; L}{\Gamma_1 \vdash \ifelsethen{v}{P}{Q} : \Gamma_3 ; L}
+$$
+
+The idea here is that we check that $v$ is indeed a boolean variable, and that $P$ and $Q$ are type-correct under the same context, since they will be run in the same context, after one is chosen to be run.
+
+The next pair of rules define passing values along a channel
+
+$$
+\frac{\Gamma_1 \vdash x : q ! T . U ; \Gamma_2 \quad \Gamma_2 \vdash v : T ; \Gamma_3 \quad \Gamma_3 + x : U \vdash P : \Gamma_4 ; L}{\Gamma_1 \vdash \bar{x}v.P : \Gamma_4 ; L \cup (\ifelsethen{q = \lin}{\set{x}}{\emptyset})} \\
+$$
+
+To check outputting along a channel, we have three jobs (corresponding to the three pre-conditions in this typing rule):
+\begin{enumerate}
+    \item We have to make sure that the context expects $x$ to be used as an output endpoint. We do this directly, and pick up the continuation type in $U$ and the value type in $T$.
+    \item That the value we are outputting ($v$) corresponds to the type that the context expects our output to be ($T$)
+    \item That if we continue \footnote{To see a precise definition of $+$, see \ref{auxfunc}.} $x$ as the expected continuation type ($U$) that the context expects, then $P$ will still be typed correctly.
+\end{enumerate}
+
+Observe that we correctly get the linear variables used by process $P$ into $L$, which we add $x$ to if it is expected to be linear by the context.
+
+$$
+\frac{\Gamma_1 \vdash q_2?T.U ; \Gamma_2 \quad (\Gamma_2, y : T) + x : U \vdash P : \Gamma_3 ; L \quad q_1 = \un \implies L \setminus \set{y} = \emptyset}{\Gamma_1 \vdash q_1 x(y) . P : \Gamma_3 \td \set{y} ; L \setminus \set{y} \cup  (\ifelsethen{q_2 = \lin}{\set{x}}{\emptyset})}
+$$
+
+To check input along a channel, we again have three jobs:
+\begin{enumerate}
+    \item We have to make sure that the context expects $x$ to be used as an input endpoint. We do this directly, and pick up the continuation type in $U$ and the value type in $T$.
+    \item If we add $y$ to the context with the expected type for it ($T$), $P$ is still well-typed. 
+    \item If $x(y)$ is a replicating input (i.e: has $\un$ applied to it), then it cannot contain any linear variables, since the replication will result in the linear variable being used in multiple threads (the current thread and the thread it spawns). $L$ is the set of linear variables used by $P$, and we ensure that it is basically empty, except perhaps for $y$. We can use $y$ since $y$ is a ``local" variable in $P$.
+\end{enumerate}
+
+For our output, we ensure that $y$ is not present in the output context / set of linear variables, and that we add $x$ to the set of variables that shouldn't be used in another thread ($L$) if $x$ is a linear endpoint.
+
+The next pair of rules define branching / selection.
+
+$$
+\frac{\Gamma_1 \vdash x : q \& \set{l_i : T_i}_{i \in I} ; \Gamma_2 \quad \forall{i \in I}:\Gamma_2 + x : T_i \vdash P_i : \Gamma_3 ; L_i \quad \forall{i,j \in I} : L_i \setminus \set{x} = L_j \setminus \set{x}}{\Gamma_1 \vdash x \offer \set{l_i : P_i}_{i \in I} : \Gamma_3 ; L \cup (\ifelsethen{q = \lin}{\set{x}}{\emptyset})} \\
+$$
+
+To type-check a channel that offers multiple process pathways we need to:
+\begin{enumerate}
+    \item Check that the context expects $x$ to branch with the same labels as the process.
+    \item That if the process branches on label $l_i$, then the process continues as type $T_i$.
+    \item That each pathway uses the same linear variables, though they may differ with respect to using $x$. \todo{Why?}
+\end{enumerate}
+
+$$
+\frac{\Gamma_1 \vdash x : q \oplus \set{l_i : T_i}_{i \in I} ; \Gamma_2 \quad \Gamma_2 + x : T_j \vdash P : \Gamma_3 ; L \quad j \in I}{\Gamma_1 \vdash x \select l_j.P : \Gamma_3 ; L \cup (\ifelsethen{q = \lin}{\set{x}}{\emptyset})}
+$$
+
+To type-check a channel that requests the other endpoint user to branch, we need to:
+\begin{enumerate}
+    \item Check that the context expects $x$ to request a branching operation, with the same labels
+    \item That the subsequent process type-checks correctly, with the corresponding continuation type for $x$ based on the label selected.
+    \item That the label selected is one that that the context expects for $x$. Note that it does \textbf{not} check that the label exists at the corresponding branching process.
+\end{enumerate}
 
 \subsubsection{Table of rules}
 \todo{pi table}

@@ -1,22 +1,217 @@
-\todo{How pi calculus syntax is similar to that of hopi syntax but diverges when it comes to describing shared / linear types}
+\subsubsection{Essential differences from $\pi$-calculus}
+
+With HOS$\pi$ , there are two types of channel endpoints: shared and session names. Shared names can communicate within multiple threads and session names can only communicate between two threads. They are our equivalent of unrestricted and linear endpoints.
+
+Unlike in $\pi$ calculus, where you had to strictly define the the two endpoints of communication under restriction, two endpoints are connected by defining them as dual. This means that if we have some channel $x$, its corresponding sibling endpoint is $\dual{x}$.
+
 
 \subsubsection{Process syntax}
 
-\todo{hopi syn}
+We use $a,b,c$ to range over shared endpoints and $s_i$ to range over session endpoints. Broadly, to refer to endpoints (also called names), we use $n$.
 
-\subsubsection{Differences from $\pi$-calculus}
+$$
+n ::= a,b,c \mid s \mid \bar{s}
+$$
 
-\todo{hopi diffs}
+Observe that there is no syntax of $\bar{a}, \bar{b}, \bar{c}$. This is because for shared names, there is no concept of "dual" endpoints. If you have shared names in multiple locations, it's impossible to actually have a ``dual". If $a$ appears in two threads, and $\dual{a}$ in a third, which of the two ``$a$"s is the dual of $\dual{a}$?
+
+To this end, all shared endpoints are simply ``connected" directly, and there is a non-deterministic element to which endpoint would be selected.
+
+We use $x$ to range over variables for endpoints. To refer to either variables or names, we use $u,w$.
+
+$$
+u,w ::= n \mid x
+$$
+
+The central point of HOS$\pi$ is, of course, the ability to pass higher order functions through channels themselves, and for this, we introduce notation similar to that of lambda calculus:
+
+$$
+V :: \lambda x.  P
+$$
+
+This is essentially a function, to which you can pass in some channel (or another abstraction) that replaces all instances of $x$ in $P$. 
+
+We represent raw values with $V,W$. Values can take two forms:
+
+As names:
+$$
+V, W ::= u
+$$
+
+or as abstractions:
+$$
+V ::= \lambda x . P
+$$
+
+$$
+V ::= x
+$$
+\todo{Ask Prof: Isn't this redundant?}
+
+We can now formally define the syntax for a process $P$ in HOS$\pi$.
+
+Firstly, $P$ has all the usual syntax for value passing / branching / parallelism as in session-types $\pi$-calculus.
+$$
+P ::= \ep \mid u!\out{V}.P \mid u?(x).P \mid u \select l.P \mid u \offer \set{l_i : P_i}_{i \in I} \mid (P \mid Q)  \mid (\rest n) P
+$$
+
+There are some minor differences in syntax:
+\begin{itemize}
+    \item There is no $\lin, \un$, since replication is provided in another manner (described below).
+    \item The syntax for input ($u ? (x) . P$) is slightly different from an equivalent process in $\pi$ calculus: $u(x) . P$.
+    \item The syntax for output ($u! \out{V}.P$) is slightly different from an equivalent process in $\pi$ calculus: $\bar{u}x.P$.
+    \item The restriction process $(\rest n) P$ only specifies one endpoint, since the other endpoint is implicit. The equivalent process in $\pi$ calculus would be $(\rest n \dual{n}) P$
+\end{itemize}
+
+As mentioned, there is no $\lin, \un$ in HOS$\pi$. Rather, it follows the syntax present for unrestricted types in $\pi$-calculus:
+
+$$
+P ::= \mu X . P \mid X
+$$
+
+With the concept of replication occurring via the exact same manner of replacement.
+
+The last syntactic element in HOS$\pi$ is application:
+
+$$
+P ::= V u
+$$
+
+This says that if we have some value $V$, we can append a endpoint (or a variable for an endpoint) to it, to represent function application. The typing rules will restrict $V$ to be a lambda function.
+
+\todo{Ask Prof: Why not specify $\lambda x. P$ here instead?} 
+
 
 \subsubsection{Operational Semantics}
 
-\todo{hopi op sem}
+As in session typed $\pi$-calculus , we have to define operation semantics to formalize our informal understanding of the syntax we presented. Fortunately, almost all these rules follow from our earlier discussion of operational semantics in $\pi$-calculus. We have:
+
+\begin{gather*}
+\frac{P \ra P'}{(\rest n)P \ra (\rest n)P'} \\
+\frac{P \ra P'}{P \mid Q \ra P' \mid Q} \\
+\frac{P \equiv P' \quad Q \equiv Q' \quad P \ra Q}{P' \ra Q'}
+n!\out{V} . P \mid \bar{n}?(x).Q \ra P \mid Q[V / x] \\
+\frac{j \in I}{n \select l_j .Q \mid \bar{n} \offer \set{l_i \mid P_i}_{i \in I} \ra Q \mid P}
+\end{gather*}
+
+which are rules for, respectively:
+\begin{enumerate}
+    \item Evolution of an inner process within a restriction
+    \item Evolution of an inner process within a parallelization.
+    \item Evolution via existing equivalent processes
+    \item Value passing
+    \item Process branching
+\end{enumerate}
+
+The only "new" rule is to do with formalizing function application:
+
+
+$$
+(\lambda x . P) u \ra P [ u / x]
+$$
 
 \subsubsection{Structural Congruence}
-\todo{hopi struc cong}
+Finally, before we move ahead to typing, let us discuss the structural congruence rules behind HOS$\pi$. They largely follow the rules as presented for $\pi$-calculus, so if any of these rules are unclear, please study that section.
+\begin{gather*}
+P \mid \ep \equiv P \\
+P \mid Q \equiv Q \mid P \\
+P \mid (Q \mid R) \equiv (P \mid Q) \mid R \\
+(\rest n) \ep \equiv \ep \\
+\frac{n \notin \fv(P)}{P \mid (\rest n) Q \equiv (\rest n)(P \mid Q)} \\
+\frac{P \equiv Q}{P \equiv_\alpha Q}
+\end{gather*}
+
+The only "new" rule involves formalizing the notion of replication behind $\mu X . P$:
+
+$$
+\mu X . P \equiv P [\mu X . P/ X]
+$$
+
+This says that $X$ really represents the process it is covering: $\mu X . P$ and so, it can be freely substituted anywhere within that process.
 
 \subsubsection{Typing rules}
-\todo{hopi Type rules}
+
+In some manner, the true difficulty with applying HOS$\pi$ comes not from writing correct HOS$\pi$ processes, but writing well typed processes. There is difficulty associated with:
+\begin{itemize}
+\item Determining what should be present in the context (and which context, as there are two
+\item What should be typed
+\item Making sure that everything that needs to be typed is typed
+\item Whether some value is a shared value or a session value.
+\end{itemize}
+
+This is not said in an effort to scare you, but to emphasize that you might not understand the content on a first pass, and learning this typing system is an iterative process, where you gather some small understanding, attempt to type a process, fail, reflect and gather some small understanding and repeat.
+
+First, let us discuss the types behind values:
+\begin{gather*}
+U ::= C \mid L \\
+C ::= S \mid \shared{S} \mid \shared{L} \\
+L ::= \sho{C} \mid \lho{C} \\
+S ::= !\out{U} . S \mid ?(U).S \mid \oplus \set{l_i : S_i}_{i \in I} \mid \&\set{l_i : S_i}_{i \in I} \mid \mu t. S \mid t \mid \et
+\end{gather*}
+
+Now, let us formalize the notation of contexts:
+\begin{gather*}
+\Gamma ::= \emptyset \mid \Gamma, x : \sho{C} \mid \Gamma, u : \shared{S} \mid \Gamma, u : \shared{L} \mid \Gamma, X : \Delta \\
+\Lambda ::= \emptyset \mid \Lambda, x : \lho{C} \\
+\Delta ::= \emptyset \mid \Gamma, u : S \\
+\Theta ::= \Theta,\Lambda \mid \Theta,\Delta
+\end{gather*}
+
+Now, we define our typing rules\footnote{Note that in \cite{main}, there is actually another typing system presented for HOS$\pi$ as well. In reality, there is also another similar typing system for session-typed $\pi$-calculus as well. The key weakness behind both of these is that they do not lend themselves to an algorithmic process of type-checking, and thus an alternative formulation is used.}. 
+
+\textbf{Note: As in session-typed $\pi$-calculus it's not strictly necessary to read the rest of this section. Armed with the syntax of HOS$\pi$, and your intuition behind it, it's sufficient to start writing typed-processes. However, as with $\pi$-calculus, reading this section will improve any imperfections behind your understanding of of your intuitions.}
+
+$$
+\Gamma ; \Theta_1 \Vdash \ep ; \Theta_1
+$$
+
+$$
+\Gamma ; \Theta_1, u:S \Vdash ; u \typesto S ; \Theta_1
+\Gamma, u : U ; \Theta_1 \Vdash u \typesto U ; \theta_1
+\Gamma ; \Theta_1 , x : \lho{C} \Vdash x \typesto \lho{C} ; \Theta_1
+$$
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash V \typesto \lho{C} ; \Theta_1}{\Gamma ; \Theta_1 \Vdash V \typesto \sho{C} ; \Theta_1} \\
+\frac{\Gamma ; \Theta_1, x : C \lho{C} \Vdash P \typesto \diamond ; \Theta_2}{\Gamma, x : \sho{C} ; \Theta_1 \Vdash P \typesto \diamond ; \Theta_2}
+\end{gather*}
+
+$$
+\frac{\splt{\Theta_1} = \emptyset * \Theta_1}{\Gamma , X : \Theta_1 ; \Theta_2, \Theta_1 \Vdash X ; \Theta_2}
+$$
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash P ; \Theta_2 \quad \Gamma ; \Theta_2 \Vdash Q ; \Theta_3}{\Gamma ; \Theta_1 \Vdash P \ mid Q ; \Theta_3} \\
+\frac{\splt{\Theta_1} = \emptyset * \Theta_1 \quad \Gamma , X : \Theta_1 ; \Theta_1, \Theta_2 \Vdash P ; \Theta_2 \quad N \subset dom(\Theta_1, \Theta_2)}{\Gamma ; \Theta_1, \Theta_2 \Vdash \mu(X : N) . P ; \Theta_2} \\
+\frac{\Gamma ; \Theta_1 \Vdash V \typesto \aho{C} ; \Theta_2 \quad \Gamma ; \Theta_4 \Vdash u \typesto C ; \Theta_5 \quad \splt{\Theta_2} = \Theta_3 * \Theta_4}{\Gamma ; \Theta_1 \Vdash V u ; \Theta_3 ; \Theta_5}
+\end{gather*}
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 , s_1 : S_1, \bar{s_2} : S_2 \Vdash P ; \Theta_2 \quad S_1 \text{ dual } S_2}{\Gamma ; \Theta_1 \Vdash (\rest s : S_1)P ; \Theta \td \set{s_1, s_2}} \\
+\frac{\Gamma a : \shared{S} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash (\rest a : \shared{S})P ; \Theta_2} \\
+\end{gather*}
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 , x : S \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash \lambda x : S . P ; \Theta_2 \td x} \\
+\frac{\Gamma, x : \shared{U} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash \lambda x : \shared{U} . P ; \Theta_2} \\
+\end{gather*}
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto !\out{U} . S ; \Theta_2 \quad \Gamma ; \Theta_2 , u : S \Vdash V \typesto U ; \Theta_3 \quad \Gamma ; \Theta_3 \Vdash P ; \Theta_4}{\Gamma ; \Theta_1 \Vdash u ! \out{V} . P ; \Theta_4 \td u} \\
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto ?(U) . S ; \Theta_2 \quad \Gamma, x : \shared{U} ; \Theta_2 , u : S \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 \Vdash ? (x) . P ; \Theta_3 \td u} \\
+\frac{\Gamma ; \Theta_1 \Vdash V \typesto \aho{C} ; \Theta_2 \quad \Gamma ; \Theta_4 \Vdash u \typesto C ; \Theta_5 \quad \splt{\Theta_2} = \Theta_3 * \Theta_4}{\Gamma ; \Theta_1 \Vdash V u ; \Theta_3 , \Theta_5}
+\end{gather*}
+
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto \oplus \set{l_i : S_i}_{i\in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_j \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 , u : \oplus\set{l_i : S_i}_{i \in I} \Vdash u \select l_j . P ; \Theta_3 \td u} \\
+\frac{\Gamma ; \Theta_1 \Vdash \& \set{l_i : S_i}_{i \in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_i \Vdash P_i ; \Theta^i_3 \quad \forall i,j \in I : \notend{\Theta^i_3} = \notend{\Theta_3^i}}{\Gamma ; \Theta_1 \Vdash u \offer \set{l_i : P_i}_{i \in I} ; \bigcap_{i \in I} \Theta_3^i \td u} \\
+\end{gather*}
+
+\begin{gather*}
+\frac{\Gamma' , u : \shared{U} ; \Theta_1 \Vdash u \typesto \shared{U} ; \Theta_1 \quad \Gamma' , u : \shared{U} ; \Theta_3 \Vdash V \typesto U ; \Theta_4 \quad \Gamma', u : \shared{U} ; \Theta_2, \Theta_4 \Vdash P ; \Theta_5 \quad \splt{\Theta_1} = \Theta_2 * \Theta_3}{\Gamma', u : \shared{U} ; \Theta_1 \Vdash u ! \out{V} . P ; \Theta_5} \\
+\frac{\Gamma' , u : \shared{U} ; \Theta_1', x : C \Vdash u \typesto \shared{U} ; \Theta' , x : C \quad \Gamma' , u : \shared{U} , \Theta_1', x : C \Vdash P ; \theta_2}{\Gamma ; \Theta_1' \Vdash u ? (x) . P ; \Theta_2 \td x} \\
+\frac{\Gamma' , u : \shared{U} , x : \shared{C} ; \Theta_1 \Vdash u \typesto \shared{U} ; \Theta_1 \quad \Gamma' , u : \shared{U} , x : \shared{C} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma', u : \shared{U} ; \Theta_1 \Vdash u ? (x) . P ; \Theta_2} \\
+\end{gather*}
 
 \subsubsection{Table of rules}
 \todo{hopi table}
