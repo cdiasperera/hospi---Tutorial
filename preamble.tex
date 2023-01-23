@@ -12,8 +12,6 @@
 \usepackage{verbatim}
 \usepackage{eurosym}
 \usepackage[export]{adjustbox}
-\usepackage[pdfencoding=auto, psdextra]{hyperref}
-\pdfstringdefDisableCommands{\def\varepsilon{\textepsilon}}
 \usepackage{xcolor}
 \setcounter{tocdepth}{2}
 \usepackage{csquotes}
@@ -22,6 +20,13 @@
 \usepackage{lipsum}
 \usepackage{array}
 \usepackage{upgreek}
+\usepackage[pdfencoding=auto, psdextra,
+            colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue]{hyperref}
+\pdfstringdefDisableCommands{\def\varepsilon{\textepsilon}}
 
 
 % Lengths
