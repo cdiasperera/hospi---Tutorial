@@ -1,27 +1,109 @@
-\todo{Discuss minimal syntax to introduce maude}
-$$
-op
-$$
+Maude is a language as deep and broad as the pacific ocean, but you only need to know a very limited syntax to be able to actually use it for the purposes of using the specification.
 
-$$
-eq
-$$
+There are three broad parts to a Maude program (for our purposes):
+\begin{enumerate}
+    \item The loading of the required modules
+    \item The definition of various entities 
+    \item The execution of various functions on those entities (or inline defined entities)
+\end{enumerate}
 
-$$
-red[uce]
-$$
+To load modules, we need the \code{load} command at the start of our file. Furthermore, you will need to use a \code{protecting} declaration on certain modules to avoid ``junk" being added (you will see what modules need to be protected in an example0.
 
-$$
-rew[rite]
-$$
+To define entities, you have to define a formal \textbf{module}. To do this, we use the following syntax:
 
-$$
-load \\
-protecting
-$$
+\begin{verbatim}
+mod MODULE_NAME is
 
-$$
-modelCheck
-$$
-\todo{Discuss basic principles behind how maude works}
-\todo{Discuss how reduce, search and modelCheck are used profitably}
+endm
+\end{verbatim}
+\todo{improve listing environment}
+With the definition of entities existing within these two lines.
+
+In practice, your files dedicated to using the specification will look something like this (note the protecting declarations):
+\begin{verbatim}
+load chan
+load cinni
+load chanset
+load hospi-syntax
+load hospi-semantics
+load hospi-types-syntax
+load hospi-types-funcs
+load hospi-types
+
+mod TEST is
+  protecting HOSPI-SYNTAX .
+  protecting HOSPI-SEMANTICS .
+  protecting HOSPI-TYPES .
+
+--- <Entity definitions go here>
+endm
+
+<Function declarations go here>
+
+\end{verbatim}
+
+Now, we shall discuss how you define entities / use functions. Note that every statement in Maude that we will discuss are all appended with ``\code{.}" (a dot), including protecting declarations. In some sense, this is Maude's equivalent of a semicolon in C, except that the dot can \textit{also} be used in your definition of Maude's equivalent of functions.
+
+To define a function in Maude, there are two parts:
+\begin{itemize}
+    \item Defining the signature of it
+    \item Defining it's semantics in a functional style.
+\end{itemize}
+
+To define the signature we have the following (pseudo-)syntax\footnote{Note that this syntax isn't exactly mapping to that in Maude. The dots here are meant to represent a continuation of the space separated list of parameters to the $N$\textsuperscript{th} parameters}:
+
+\begin{verbatim}
+op functionName : Param1 Param2 ...  ParamN -> Result .
+\end{verbatim}
+
+where \verb`Param1`, \verb`Param2`, \verb`ParamN`, \verb`Result` are types (called \textbf{sorts} in Maude). Note that it's possible to have $N = 0$ parameters.
+
+Then, this function name can be applied in the usual manner:
+\begin{verbatim}
+functionName(arg1, arg2, ..., argN) .
+\end{verbatim}
+
+where \code{arg1} is of sort \code{argN}.
+
+It's also possible to encode the function name in-line, using \code{\_}:
+
+\begin{verbatim}
+op _ functionName _ : Param1 Param2 -> Result .
+\end{verbatim}
+
+In general, one would need $N$ underscores for $N$ params, and it does not all need to be infix, nor does it require the same ``name" to be use. For example, the following would be valid:
+
+\begin{verbatim}
+op __ f __ g _ : Param1 Param2 Param3 Param4 Param5 -> Result .
+\end{verbatim}
+
+Then, to define the semantics of a these operators, we have to define equalities with the \code{eq} code word:
+
+\begin{verbatim}
+eq a functionName b = c
+\end{verbatim}
+
+Those with experience in Haskell will find this syntax familiar.
+
+This is the underpinning of Maude. Using these equations, it can transform existing statements into other statements, which is the core of our $\pi$-calculus. There is, of course, much much more to defining these theories (such as attaching properties to them) but it's not important to know, for now.
+
+For the functions, there are two commands we need to execute them.
+
+The \code{red} (short for \code{reduce}) command performs rewriting on equations, which we will use to observe the evolution of our systme.
+
+The \code{rew} (short for \code{rewrite}) command allows us to more systematically explore the reduction. \todo{Ask: What's the difference actually? When to use rew vs red?}
+
+We will primarily see lines in the form:
+
+\begin{verbatim}
+red functionName(a,b) .
+\end{verbatim}
+
+Lastly, one-line comments are written by prefixing a line with \code{---} and multiline comments are written as such:
+\begin{verbatim}
+***(
+    Comments go here
+)
+\end{verbatim}
+
+\todo{Link Maude textbook}

@@ -4,6 +4,7 @@ With HOS$\pi$ , there are two types of channel endpoints: shared and session nam
 
 Unlike in $\pi$ calculus, where you had to strictly define the the two endpoints of communication under restriction, two endpoints are connected by defining them as dual. This means that if we have some channel $x$, its corresponding sibling endpoint is $\dual{x}$.
 
+Like $\pi$-calculus we wish to prevent linear endpoints being used in multiple processes. However, unlike in $\pi$-calculus, we also ensure that if a linear endpoint is used, it's full-behavior is utilized. That is, if $u$ is a session endpoint and takes in input and outputs some other value, if $u$ is only utilized to take in an input, this is a misuse of $u$ and no matter how you type $u$, the process will be considered ill-typed.
 
 \subsubsection{Process syntax}
 
@@ -149,64 +150,161 @@ L ::= \sho{C} \mid \lho{C} \\
 S ::= !\out{U} . S \mid ?(U).S \mid \oplus \set{l_i : S_i}_{i \in I} \mid \&\set{l_i : S_i}_{i \in I} \mid \mu t. S \mid t \mid \et
 \end{gather*}
 
+We define four main types:
+\begin{enumerate}
+    \item $U$: This is a type for any value, which may or may not be shared.
+    \item $C$: This is a type for names (channel endpoints) which may or may not be shared. \begin{itemize}
+        \item $C :: = S$ types names that are session (i.e: non-shared) endpoints.
+        \item $C ::= \shared{S}$ types shared endpoints that have the behavior of $S$ \todo{Doesn't seem to be the case?}
+        \item $C ::= \shared{L}$ types shared that \todo{If $x$ had this type, what does it do? It's a shared name that ... does what exactly?}
+    \end{itemize}
+    \item $L$: This is a type for abstractions, with $\aho{C}$ defining the type for the value used in the application.
+    \item $S$: This defines the type of a channel, with the same meaning as in $\pi$-calculus types.
+\end{enumerate}
+
+
 Now, let us formalize the notation of contexts:
+
+Unlike in $\pi$-calculus, where there is a single context, in HOS$\pi$ there are 3 types of contexts:
+\begin{enumerate}
+    \item $\Gamma$: The shared context. This context contains typing information for variables / names that are shared.
+    \item $\Lambda$: This is the linear context, which contains typing information for variables representing linear higher order abstractions.
+    \item $\Delta$: This is the session context, which contains typing information for session names.
+    \item $\Theta$: Since variables in $\Lambda, \Delta$ contain fundamentally linear variables, for convenience we combine them in $\Theta$, which contains either.
+\end{enumerate}
+
 \begin{gather*}
 \Gamma ::= \emptyset \mid \Gamma, x : \sho{C} \mid \Gamma, u : \shared{S} \mid \Gamma, u : \shared{L} \mid \Gamma, X : \Delta \\
 \Lambda ::= \emptyset \mid \Lambda, x : \lho{C} \\
-\Delta ::= \emptyset \mid \Gamma, u : S \\
+\Delta ::= \emptyset \mid \Delta, u : S \\
 \Theta ::= \Theta,\Lambda \mid \Theta,\Delta
 \end{gather*}
+
+Perhaps you might be curious why a recursive variable ($X$) is assigned a context (also called an \textbf{environment}) as a ``type". To understand this, we must recall that our typing system only meaningfully types names and simple variables (like Booleans). Other typing rules are simply in service of making sure the process is well defined. In this sense, the ``type" of $X$ actually refers to the first order variables within the recursive process that $X$ captures, and how they are used within that process.
+\todo{Ask Prof: Is this correct?}
 
 Now, we define our typing rules\footnote{Note that in \cite{main}, there is actually another typing system presented for HOS$\pi$ as well. In reality, there is also another similar typing system for session-typed $\pi$-calculus as well. The key weakness behind both of these is that they do not lend themselves to an algorithmic process of type-checking, and thus an alternative formulation is used.}. 
 
 \textbf{Note: As in session-typed $\pi$-calculus it's not strictly necessary to read the rest of this section. Armed with the syntax of HOS$\pi$, and your intuition behind it, it's sufficient to start writing typed-processes. However, as with $\pi$-calculus, reading this section will improve any imperfections behind your understanding of of your intuitions.}
 
+Much like in $\pi$-calculus we have two versions of typing rules (one for processes and one for values) and we have a method to keep track of which session variables gets used.
+
+Our two typing rules take the form:
+\begin{itemize}
+\item $\Gamma, \Theta_1 \Vdash V \typesto U ; \Theta_2$, for typing values
+\item $\Gamma, \Theta_1 \Vdash P ; \Theta_2$, for typing processes
+\end{itemize}
+
+In each case, $\Theta_2$ tracks which session variables are used.
+
+
+We start our typing rules with our base process. This simply says that any context can type $\ep$.
 $$
 \Gamma ; \Theta_1 \Vdash \ep ; \Theta_1
 $$
 
-$$
-\Gamma ; \Theta_1, u:S \Vdash ; u \typesto S ; \Theta_1
-\Gamma, u : U ; \Theta_1 \Vdash u \typesto U ; \theta_1
+The following typing rules define the minimum environment for typing values. Essentially they ask for the respective variable / name to exist within the appropriate context.
+
+\begin{gather*}
+\Gamma ; \Theta_1, u:S \Vdash ; u \typesto S ; \Theta_1 \\
+\Gamma, u : U ; \Theta_1 \Vdash u \typesto U ; \Theta_1 \\
 \Gamma ; \Theta_1 , x : \lho{C} \Vdash x \typesto \lho{C} ; \Theta_1
-$$
+\end{gather*}
+
+The following rules are to define the rules for "promotion" of a linear higher order type to a shared higher order type. The first rule says that if $V$ can be typed as a linear higher order type but typing it does not use any session variables (since the output linear environment $\Theta_1$ is equal to the input linear environment $\Theta_1$), it can also be typed as a shared higher order type.
+
+The latter rule says that if $P$ is a well typed process (which the notation $\typesto \diamond$ indicates), via a session higher order type, if we treated that higher order type as a shared type, $P$ would still be well-typed (since we have moved to a less restrictive type).
 
 \begin{gather*}
 \frac{\Gamma ; \Theta_1 \Vdash V \typesto \lho{C} ; \Theta_1}{\Gamma ; \Theta_1 \Vdash V \typesto \sho{C} ; \Theta_1} \\
-\frac{\Gamma ; \Theta_1, x : C \lho{C} \Vdash P \typesto \diamond ; \Theta_2}{\Gamma, x : \sho{C} ; \Theta_1 \Vdash P \typesto \diamond ; \Theta_2}
+\frac{\Gamma ; \Theta_1, x : \lho{C} \Vdash P \typesto \diamond ; \Theta_2}{\Gamma, x : \sho{C} ; \Theta_1 \Vdash P \typesto \diamond ; \Theta_2}
 \end{gather*}
+\todo{Promotion}
 
-$$
-\frac{\splt{\Theta_1} = \emptyset * \Theta_1}{\Gamma , X : \Theta_1 ; \Theta_2, \Theta_1 \Vdash X ; \Theta_2}
-$$
+
+The following rules defines the type checking semantics for recursive processes. The first rule ensures that $X$ is typed to only contain first order types\footnote{This is enforced via $\splt$, which takes in a linear context and outputs $\Theta_2 * \Theta_1$, where $\Theta_2$ contains the higher order types and $\Theta_1$ contains the first order types. Then, observing that $X$ is typed to $\Theta_1$, we have it that $X$ is typed to just first order types. See appendix \ref{auxfunc} for a detailed specification for $\splt$}.
+
+The second rule is actually want types recursive processes. Here, we:
+\begin{enumerate}
+    \item Check that there is some subset of the linear environment that can type $X$ (i.e: that subset types only first order variables)
+    \item Check that we can type the rest of the process (which may contain $X$ which will utilize the first rule) with $\Theta_1$
+    \item Check that the linear environment we have as input contains all the variables we need from $X$.
+\end{enumerate}
+
+Note that $dom(\Theta)$ is the set of all variables defined by $\Theta$ and that $N$ is a collection of variables (which, if correctly typed, is the set of all variables used by $X$).
 
 \begin{gather*}
-\frac{\Gamma ; \Theta_1 \Vdash P ; \Theta_2 \quad \Gamma ; \Theta_2 \Vdash Q ; \Theta_3}{\Gamma ; \Theta_1 \Vdash P \ mid Q ; \Theta_3} \\
-\frac{\splt{\Theta_1} = \emptyset * \Theta_1 \quad \Gamma , X : \Theta_1 ; \Theta_1, \Theta_2 \Vdash P ; \Theta_2 \quad N \subset dom(\Theta_1, \Theta_2)}{\Gamma ; \Theta_1, \Theta_2 \Vdash \mu(X : N) . P ; \Theta_2} \\
-\frac{\Gamma ; \Theta_1 \Vdash V \typesto \aho{C} ; \Theta_2 \quad \Gamma ; \Theta_4 \Vdash u \typesto C ; \Theta_5 \quad \splt{\Theta_2} = \Theta_3 * \Theta_4}{\Gamma ; \Theta_1 \Vdash V u ; \Theta_3 ; \Theta_5}
+\frac{\splt{\Theta_1} = \emptyset * \Theta_1}{\Gamma , X : \Theta_1 ; \Theta_2, \Theta_1 \Vdash X ; \Theta_2}\\
+\frac{\splt{\Theta_1} = \emptyset * \Theta_1 \quad \Gamma , X : \Theta_1 ; \Theta_1, \Theta_2 \Vdash P ; \Theta_2 \quad N \subseteq dom(\Theta_1, \Theta_2)}{\Gamma ; \Theta_1, \Theta_2 \Vdash \mu(X : N) . P ; \Theta_2}
+\end{gather*}
+\todo{Ask: What is $dom$?}
+\todo{Ask: I feel that we need to check that $N \subseteq dom(\Theta_1)$. What if one variable required from $X$ is in $\Theta_2$? Or at least that the rule should specify that $\Theta_1$ is created from $N$?}
+
+The following rule defines the typing rules for a parallelization operation. The intuition is similar to the corresponding rule in $\pi$-calculus.
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash P ; \Theta_2 \quad \Gamma ; \Theta_2 \Vdash Q ; \Theta_3}{\Gamma ; \Theta_1 \Vdash P \mid Q ; \Theta_3} \\
 \end{gather*}
 
+The following rules define the typing rule surrounding restrictions \todo{Why is there a distinction?}
 \begin{gather*}
 \frac{\Gamma ; \Theta_1 , s_1 : S_1, \bar{s_2} : S_2 \Vdash P ; \Theta_2 \quad S_1 \text{ dual } S_2}{\Gamma ; \Theta_1 \Vdash (\rest s : S_1)P ; \Theta \td \set{s_1, s_2}} \\
-\frac{\Gamma a : \shared{S} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash (\rest a : \shared{S})P ; \Theta_2} \\
+\frac{\Gamma, a : \shared{S} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash (\rest a : \shared{S})P ; \Theta_2} \\
 \end{gather*}
 
+
+The following rules define branching.
+
+The first rule defines the semantics for selection. It:
+\begin{enumerate}
+    \item Checks that the selection channel $u$ is typed as such in the context
+    \item That with $u$ having it's selected continuation type $S_j$, the next sub-process in $u \select l_j . P$ ($P$) is well-typed.
+\end{enumerate}
+
+The second rule defines the semantics for branching. It:
+\begin{enumerate}
+    \item Checks that the branching channel $u$ is typed as such in the context
+    \item That each continuation type $S_i$ for label $l_i$ (as expected in the context) matches the process selected $P_i$.
+    \item That the resulting linear context after $P$ finishes is the same for any choice of $l_j$, perhaps only differing by some variables having type $\et$ and some not\footnote{We check this through the $\texttt{NotEnd}$ functions.  $\texttt{NotEnd}$ returns the set of variables that do not have the type $\et$. Details can be found in the appendix \ref{auxfunc}.}. \todo{Why is this difference okay?}
+\end{enumerate}
+\begin{gather*}
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto \oplus \set{l_i : S_i}_{i\in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_j \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 , u : \oplus\set{l_i : S_i}_{i \in I} \Vdash u \select l_j . P ; \Theta_3 \td u} \\
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto \& \set{l_i : S_i}_{i \in I}; \Theta_2 \quad \forall i \in I :\Gamma ; \Theta_2 , u : S_i \Vdash P_i ; \Theta^i_3 \quad \forall i,j \in I : \notend{\Theta^i_3} = \notend{\Theta_3^i}}{\Gamma ; \Theta_1 \Vdash u \offer \set{l_i : P_i}_{i \in I} ; \bigcap_{i \in I} \Theta_3^i \td u} \\
+\end{gather*}
+
+The following rules define the typing rule for abstraction and lambda application. Note: $\leadsto \in \set{\multimap, \ra}$.
+
+The first two rules are means to define abstractions for processes that use session or shared endpoints, respectively. The idea here is that before one can type a higher order process, one first needs to ensure that the process would work if the abstraction variable was the correct type.
+
+The last rule:
+\begin{enumerate}
+    \item Checks that $V$ is actually a higher order type
+    \item That $u$ can appropriately be applied to $V$
+\end{enumerate}
 \begin{gather*}
 \frac{\Gamma ; \Theta_1 , x : S \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash \lambda x : S . P ; \Theta_2 \td x} \\
 \frac{\Gamma, x : \shared{U} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma ; \Theta_1 \Vdash \lambda x : \shared{U} . P ; \Theta_2} \\
-\end{gather*}
-
-\begin{gather*}
-\frac{\Gamma ; \Theta_1 \Vdash u \typesto !\out{U} . S ; \Theta_2 \quad \Gamma ; \Theta_2 , u : S \Vdash V \typesto U ; \Theta_3 \quad \Gamma ; \Theta_3 \Vdash P ; \Theta_4}{\Gamma ; \Theta_1 \Vdash u ! \out{V} . P ; \Theta_4 \td u} \\
-\frac{\Gamma ; \Theta_1 \Vdash u \typesto ?(U) . S ; \Theta_2 \quad \Gamma, x : \shared{U} ; \Theta_2 , u : S \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 \Vdash ? (x) . P ; \Theta_3 \td u} \\
 \frac{\Gamma ; \Theta_1 \Vdash V \typesto \aho{C} ; \Theta_2 \quad \Gamma ; \Theta_4 \Vdash u \typesto C ; \Theta_5 \quad \splt{\Theta_2} = \Theta_3 * \Theta_4}{\Gamma ; \Theta_1 \Vdash V u ; \Theta_3 , \Theta_5}
 \end{gather*}
 
+The following rules define value passing through a session endpoint.
+They each first check that the channel $u$ is defined as a session endpoint.
+
+The first:
+\begin{enumerate}
+\item Checks that the output value matches the expected output value based on the channel's type
+\item Checks that $P$ is well-typed
+\end{enumerate}
+
+The second/last checks that $P$ is well-typed assuming the input is a session/shared channel.
 \begin{gather*}
-\frac{\Gamma ; \Theta_1 \Vdash u \typesto \oplus \set{l_i : S_i}_{i\in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_j \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 , u : \oplus\set{l_i : S_i}_{i \in I} \Vdash u \select l_j . P ; \Theta_3 \td u} \\
-\frac{\Gamma ; \Theta_1 \Vdash \& \set{l_i : S_i}_{i \in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_i \Vdash P_i ; \Theta^i_3 \quad \forall i,j \in I : \notend{\Theta^i_3} = \notend{\Theta_3^i}}{\Gamma ; \Theta_1 \Vdash u \offer \set{l_i : P_i}_{i \in I} ; \bigcap_{i \in I} \Theta_3^i \td u} \\
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto !\out{U} . S ; \Theta_2 \quad \Gamma ; \Theta_2 , u : S \Vdash V \typesto U ; \Theta_3 \quad \Gamma ; \Theta_3 \Vdash P ; \Theta_4}{\Gamma ; \Theta_1 \Vdash u ! \out{V} . P ; \Theta_4 \td u} \\
+\frac{\Gamma ;\Theta_1 \Vdash u \typesto ?(U).S ; \Theta_2 \quad \Gamma ; \Theta_2 , u : S , x : U \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 \Vdash u ? (x) . P ; \Theta_3 \td \set{u,x}} \\
+\frac{\Gamma ; \Theta_1 \Vdash u \typesto ?(U) . S ; \Theta_2 \quad \Gamma, x : \shared{U} ; \Theta_2 , u : S \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 \Vdash u? (x) . P ; \Theta_3 \td u}
 \end{gather*}
 
+The following rules define value passing through a shared endpoint.
+
+The typing process is similar to the typing process for session endpoints, except that $u$ is assumed to be a shared endpoint.
 \begin{gather*}
 \frac{\Gamma' , u : \shared{U} ; \Theta_1 \Vdash u \typesto \shared{U} ; \Theta_1 \quad \Gamma' , u : \shared{U} ; \Theta_3 \Vdash V \typesto U ; \Theta_4 \quad \Gamma', u : \shared{U} ; \Theta_2, \Theta_4 \Vdash P ; \Theta_5 \quad \splt{\Theta_1} = \Theta_2 * \Theta_3}{\Gamma', u : \shared{U} ; \Theta_1 \Vdash u ! \out{V} . P ; \Theta_5} \\
 \frac{\Gamma' , u : \shared{U} ; \Theta_1', x : C \Vdash u \typesto \shared{U} ; \Theta' , x : C \quad \Gamma' , u : \shared{U} , \Theta_1', x : C \Vdash P ; \theta_2}{\Gamma ; \Theta_1' \Vdash u ? (x) . P ; \Theta_2 \td x} \\
