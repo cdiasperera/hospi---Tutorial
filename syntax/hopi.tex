@@ -222,7 +222,7 @@ The latter rule says that if $P$ is a well typed process (which the notation $\t
 \todo{Promotion}
 
 
-The following rules defines the type checking semantics for recursive processes. The first rule ensures that $X$ is typed to only contain first order types\footnote{This is enforced via $\splt$, which takes in a linear context and outputs $\Theta_2 * \Theta_1$, where $\Theta_2$ contains the higher order types and $\Theta_1$ contains the first order types. Then, observing that $X$ is typed to $\Theta_1$, we have it that $X$ is typed to just first order types. See appendix \ref{auxfunc} for a detailed specification for $\splt$}.
+The following rules defines the type checking semantics for recursive processes. The first rule ensures that $X$ is typed to only contain first order types\footnote{This is enforced via $\splt$, which takes in a linear context and outputs $\Theta_2 * \Theta_1$, where $\Theta_2$ contains the higher order types and $\Theta_1$ contains the first order types. Then, observing that $X$ is typed to $\Theta_1$, we have it that $X$ is typed to just first order types}.
 
 The second rule is actually want types recursive processes. Here, we:
 \begin{enumerate}
@@ -264,7 +264,7 @@ The second rule defines the semantics for branching. It:
 \begin{enumerate}
     \item Checks that the branching channel $u$ is typed as such in the context
     \item That each continuation type $S_i$ for label $l_i$ (as expected in the context) matches the process selected $P_i$.
-    \item That the resulting linear context after $P$ finishes is the same for any choice of $l_j$, perhaps only differing by some variables having type $\et$ and some not\footnote{We check this through the $\texttt{NotEnd}$ functions.  $\texttt{NotEnd}$ returns the set of variables that do not have the type $\et$. Details can be found in the appendix \ref{auxfunc}.}. \todo{Why is this difference okay?}
+    \item That the resulting linear context after $P$ finishes is the same for any choice of $l_j$, perhaps only differing by some variables having type $\et$ and some not\footnote{We check this through the $\texttt{NotEnd}$ functions.  $\texttt{NotEnd}$ returns the set of variables that do not have the type $\et$.}. \todo{Why is this difference okay?}
 \end{enumerate}
 \begin{gather*}
 \frac{\Gamma ; \Theta_1 \Vdash u \typesto \oplus \set{l_i : S_i}_{i\in I}; \Theta_2 \quad \Gamma ; \Theta_2 , u : S_j \Vdash P ; \Theta_3}{\Gamma ; \Theta_1 , u : \oplus\set{l_i : S_i}_{i \in I} \Vdash u \select l_j . P ; \Theta_3 \td u} \\
@@ -311,5 +311,5 @@ The typing process is similar to the typing process for session endpoints, excep
 \frac{\Gamma' , u : \shared{U} , x : \shared{C} ; \Theta_1 \Vdash u \typesto \shared{U} ; \Theta_1 \quad \Gamma' , u : \shared{U} , x : \shared{C} ; \Theta_1 \Vdash P ; \Theta_2}{\Gamma', u : \shared{U} ; \Theta_1 \Vdash u ? (x) . P ; \Theta_2} \\
 \end{gather*}
 
-\subsubsection{Table of rules}
+% \subsubsection{Table of rules}
 \todo{hopi table}

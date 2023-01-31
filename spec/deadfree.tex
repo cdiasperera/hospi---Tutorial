@@ -1,2 +1,9 @@
-\todo{Show syntax for checking deadlocked processes}
-\lipsum[1]
+To check if a parallelized system will deadlock (which, as a reminder is simply a process in and of itself) it's very simple. Suppose we have a process , \code{P}, defined in Maude, whose subprocess communicate over some channels \code{x},\code{y}, ..., \code{z}.
+
+Then, to check if \code{P} deadlocks, we can simply execute:
+
+\bi
+    \item In \code{spi} : \code{red modelCheck(P, build-lock-formula(('x1 ' 'x2'), ('y1' 'y2'), ... , ('z1' 'z2')))} \footnote{Where for channel \code{a}, \code{a1} and \code{a2} are the endpoints for such a channel.}
+    \item In \code{hospi}: \code{red modelCheck(P, build-lock-formula('x', 'y', ... , 'z'))}
+\ei
+

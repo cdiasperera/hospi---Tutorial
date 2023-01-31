@@ -1,4 +1,10 @@
-\todo{Show syntax for checking spi}
-\todo{Show syntax for checking hospi}
-\todo{Discuss things to consider when checking for hospi}
-\lipsum[1]
+In both \code{hospi} and \code{spi} we check our terms in (almost) the same way, via the:
+\bi
+    \item \code{type-value}
+    \item \code{type-term}
+\ei
+
+operators. The former provides the type for a value and the latter type-checks a process.
+They both take in a context and the value / process being types. However, in \code{hospi}'s case, the context is split into the shared context $\Gamma$ and the linear / session context $\Theta$.
+
+You have a well-typed process if reducing \code{type-term} does not return \code{ill-typed}.

@@ -1,2 +1,55 @@
-\todo{Show syntax for defining pi processes}
-\lipsum[1]
+To define channels (say $a$), we write \code{a\{0\}}. The \code{\{0\}} notation is to do with CINNI, but for our purposes, we can essentially ignore it.
+
+The following tables lists the process / type syntax for $\pi$ calculus and the corresponding syntax (with the (pseudo)-signature\footnote{It's basically the signature but instead of \code{\_} we write a value that corresponds to $\pi$-calculus column}) in Maude:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Non-Terminal & $\pi$-calculus & Maude Signature  \\ \hline
+$q$ & $\lin, \un$ & \code{op lin un : -> Qualifier} \\ \hline
+$\bool$ & $\true, \false$ & \code{op True, False : -> Value} \\ \hline
+$p$ & $q x(y)$ & \code{op q x{0}('y') : Qualifier Chan Qid -> Guard}\\ \hline
+$p$ & $q \bar{x}v$ & \code{op x{0}<v> : Chan Value -> Guard} \\ \hline
+$P$ & $\ep$ & \code{op nil : -> Trm} \\ \hline
+$P$ & $(\rest xy) P$ & \code{op new[xy] P : Qid Qid Trm -> Trm} \\ \hline
+$P$ & $(\rest xy) P$ & \code{op new[xy:T] P : Qid Qid Trm -> Trm} \\ \hline
+$P$ & $(P \mid Q)$ & \code{op P | Q : Trm Trm -> Trm} \\ \hline
+$P$ & $\ifelsethen{v}{P}{Q}$ & \code{op if v then P else Q fi : Value Trm Trm -> Trm} \\ \hline
+$P$ & $x \offer \set{C}$ & \code{op x{0} >> {C} : Chan Choiceset -> Trm} \\ \hline
+$P$ & $x \select l . P$ & \code{op x{0} << l. P : Chan  Qid Trm -> Trm} \\ \hline
+$c$ & $l : P $ & \code{op l : P : Qid Trm -> Choice} \\ \hline
+$C$ & $C_1 \cup C_2$ & \code{C1 C2 : Choiceset Choiceset -> Choiceset} \\ \hline
+$C$ & $\emptyset$ & \code{empty : -> Choiceset} \\ \hline
+\end{tabular}
+\end{table}
+
+Note that \code{Choice < Choiceset}. That is a to say, a \code{choice} is also a \code{Choiceset}. Formally, $x \in \set{y \mid y \text{ is a } c} \implies x \in \set{y \mid y \text{ is a } C}$.
+
+Observe the two definitions for $(\rest xy) P$. The latter is used for type checking, with \code{T} being the type of \code{x}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Non-Terminal & $\pi$-calculus & Maude Signature  \\ \hline
+$p$ & $ ?T_1.T_2 $ & \code{op ?T1.T2 : Type Type -> Pretype} \\ \hline
+$p$ & $ !T_1 . T_2 $ & \code{op !T1.T2 : Type Type -> Pretype} \\ \hline
+$p$ & $ \oplus\ CT$ & \code{op +{CT} : ChoiceTset -> Pretype}\\ \hline
+$p$ & $ \&\ CT$ & \code{op \&{CT} : ChoiceTset -> Pretype} \\ \hline
+$T$ & $ \bool,\ \et $ & \code{op bool end : -> Type} \\ \hline
+$T$ & $ q p$ & \code{op q p : Qualifier Pretype -> Type} \\ \hline
+$T$ & $ \mu a . T$ & \code{op u [var(a)] T : Qid Type -> Type} \\ \hline
+$T$ & $ a $ & \code{op var(a) : Qid -> Type} \\ \hline
+$\Gamma$ & $ \emptyset $ & \code{op nil : -> Context} \\ \hline
+$\Gamma$ & $ v : T$ & \code{op v : T : Value Type -> Context} \\ \hline
+$\Gamma$ & $ \Gamma_1 , \Gamma_2 $ & \code{op C1,C2 : Context Context -> Context} \\ \hline
+$ct$ & $l : T $ & \code{op l : P : Qid Trm -> Choice} \\ \hline
+$CT$ & $C_1 \cup C_2$ & \code{C1 C2 : ChoiceTset ChoiceTset -> ChoiceTset} \\ \hline
+$CT$ & $\emptyset$ & \code{empty : -> ChoiceTset} \\ \hline
+\end{tabular}
+\end{table}
+
+Note that \code{ChoiceT < ChoiceTset}. That is a to say, a \code{choiceT} is also a \code{ChoiceTset}. Formally, $x \in \set{y \mid y \text{ is a } ct} \implies x \in \set{y \mid y \text{ is a } CT}$.
+
+\todo{captions , refering of tables}

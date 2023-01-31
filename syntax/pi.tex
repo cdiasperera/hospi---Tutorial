@@ -235,7 +235,7 @@ Observe that we define $p$, but not additional elements of $T$. This is because 
 To use it, we have to combine it with a the linear ($\lin$) or unrestricted ($\un$) \textbf{qualifier}:
 
 $$
-T ::= q p
+T ::= q\ p
 $$
 
 Lastly, one might wonder how we type a process that is replicating (that is, has a $\un$ prefix). To do this, we essentially explicitly type it as such:
@@ -247,13 +247,13 @@ $$
 This is relatively novel syntax, but essentially, it defines $a$ to be a type variable that may appear in $T$, that represents $T$ itself. So, for example
 
 $$
-\mu a. \un ? bool . a
+\mu a. \un ?\ bool . a
 $$
 
 is equivalent to
 
 $$
-\mu a . \un ? bool . \un ? bool . a
+\mu a . \un ?\ bool . \un ?\ bool . a
 $$
 
 showing that we can endlessly replicate the $T$ part of $\mu a . T$, hence typing replication.
@@ -286,7 +286,7 @@ The rules are as follows:
 \frac{}{\Gamma \vdash \true : \bool ; \Gamma} \\
 \frac{}{\Gamma \vdash \false : \bool ; \Gamma} \\
 \frac{}{\Gamma_1, x : \lin p , \Gamma_2 \vdash x : \lin p; (\Gamma_1, \Gamma_2)} \\
-\frac{\unf{T}\footnote{This makes sure that $T$ is defined along a unrestricted channel or is a boolean value. See \ref{auxfunc} for details.}}{\Gamma_1, x : T , \Gamma_2 \vdash x : T; (\Gamma_1, x : T, \Gamma_2)} \\
+\frac{\unf{T}\footnote{This makes sure that $T$ is defined along a unrestricted channel or is a boolean value.}}{\Gamma_1, x : T , \Gamma_2 \vdash x : T; (\Gamma_1, x : T, \Gamma_2)} \\
 \end{gather*}
 
 Note that $\unf{T}$ is simply a function that ensures 
@@ -350,7 +350,7 @@ To check outputting along a channel, we have three jobs (corresponding to the th
 \begin{enumerate}
     \item We have to make sure that the context expects $x$ to be used as an output endpoint. We do this directly, and pick up the continuation type in $U$ and the value type in $T$.
     \item That the value we are outputting ($v$) corresponds to the type that the context expects our output to be ($T$)
-    \item That if we continue \footnote{To see a precise definition of $+$, see \ref{auxfunc}.} $x$ as the expected continuation type ($U$) that the context expects, then $P$ will still be typed correctly.
+    \item That if we continue $x$ as the expected continuation type ($U$) that the context expects, then $P$ will still be typed correctly.
 \end{enumerate}
 
 Observe that we correctly get the linear variables used by process $P$ into $L$, which we add $x$ to if it is expected to be linear by the context.
@@ -392,5 +392,5 @@ To type-check a channel that requests the other endpoint user to branch, we need
     \item That the label selected is one that that the context expects for $x$. Note that it does \textbf{not} check that the label exists at the corresponding branching process.
 \end{enumerate}
 
-\subsubsection{Table of rules}
+% \subsubsection{Table of rules}
 \todo{pi table}

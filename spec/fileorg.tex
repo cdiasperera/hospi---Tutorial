@@ -1,2 +1,27 @@
-\todo{Discuss how files are organized in the project}
-\lipsum[1]
+The repository containing the specification can be found \href{https://gitlab.com/calrare1/session-types/-/tree/master}{here}.
+
+It is divided into two folders, one for session-typed $\pi$-calculus (\code{spi}) and one for HOS$\pi$ (\code{hospi}).
+
+Each folder contains \code{chan.maude}, \code{chanset.maude} and \code{cinni.maude} which defines the semantics for channels, set of channels and CINNI substitution respectively. It's not terribly important to understand CINNI substitution, beyond knowing that it facilitates the process of substitution necessary (which you have seen in the form $P[x/y]$ which says that $x$ is substituted for $y$ in $P$.
+
+\subsubsection{\code{spi}}
+The important files in \code{spi} are:
+\bi
+    \item \code{spi-syntax.maude}: This file defines the process syntax and the substitution rules of bound variables.
+    \item \code{spi-semantics.maude}: This file defines the operational semantics and how substitutions are introduced into the term.
+    \item \code{spi-types.maude}: This file defines the syntax and type-checking functions for types
+    \item \code{spi-preds.maude}: This file defines the syntax needed for checking for deadlocks
+\ei
+
+The rest are for testing
+\subsubsection{\code{hospi}}
+The important files in \code{hospi} are:
+\bi
+    \item \code{hospi-syntax.maude}: This file defines the process syntax and the substitution rules of bound variables.
+    \item \code{hospi-semantics.maude}: This file defines the operational semantics and how substitutions are introduced into the term.
+    \item \code{hospi-types-syntax.maude}: This file defines the syntax for types
+    \item \code{hospi-types.maude}: This file defines the various type checking functions.
+    \item \code{hospi-types-func.maude}: This file defines auxilary functions needed for the type-checking functions.
+    \item \code{hospi-preds.maude}: This file defines the syntax needed for checking for deadlocks
+\ei
+The rest are for testing

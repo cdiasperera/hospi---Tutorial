@@ -8,7 +8,7 @@ There are three broad parts to a Maude program (for our purposes):
     \item The execution of various functions on those entities (or inline defined entities)
 \end{enumerate}
 
-To load modules, we need the \code{load} command at the start of our file. Furthermore, you will need to use a \code{protecting} declaration on certain modules to avoid ``junk" being added (you will see what modules need to be protected in an example0.
+To load modules, we need the \code{load} command at the start of our file. Furthermore, you will need to use a \code{protecting} declaration on certain modules to avoid ``junk" being added (you will see what modules need to be protected in section \ref{using}).
 
 To define entities, you have to define a formal \textbf{module}. To do this, we use the following syntax:
 
@@ -20,7 +20,7 @@ endm
 \todo{improve listing environment}
 With the definition of entities existing within these two lines.
 
-In practice, your files dedicated to using the specification will look something like this (note the protecting declarations):
+In practice, your files dedicated to using the specification will look something like this (note the protecting declarations, which only apply ):
 \begin{verbatim}
 load chan
 load cinni
@@ -93,6 +93,8 @@ For the functions, there are two commands we need to execute them.
 The \code{red} (short for \code{reduce}) command performs rewriting on equations, which we will use to observe the evolution of our systme.
 
 The \code{rew} (short for \code{rewrite}) command allows us to more systematically explore the reduction. \todo{Ask: What's the difference actually? When to use rew vs red?}
+
+\code{modelCheck} is a function that will be used to check for deadlocks, though in a very specific manner so it's not particularly important that you understand the syntax deeply.
 
 We will primarily see lines in the form:
 
