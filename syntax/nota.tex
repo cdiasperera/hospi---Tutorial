@@ -1,0 +1,17 @@
+\subsubsection{Syntax definition}
+To define our syntax, we will use notation similar to \href{https://en.wikipedia.org/wiki/Backus\%E2\%80\%93Naur_form}{Backus-Naur form} (BNF):
+$$
+A ::= B
+$$
+
+Which means that we can rewrite $A$ as $B$. In this case, we omit the conventional $<$ and $>$ around non-terminals, and any symbol that doesn't have a non-terminal can be considered a terminal.
+
+If we write ``$A,B,C$ ranges over $\dots$", the rule that defines $A$ applies to be $B$ and $C$ as well. Furthermore, if any rule uses $A$ it can also use $B$ and $C$ as well.
+
+Lastly, if we write ``$A,B,C$ ranges over $\dots$", we can optionally append a subscript letter / number to $A,B,C$ to range over $\dots$ as well. For example, we can use $A_i$.
+
+\subsubsection{Substitution}
+We use the notation $Q[v/z]$ to define substitution. You can interpret this as re-writing $Q$ except we replace all instances of $z$ with $v$. Note there are some intricacies involved, involving the notions of $\alpha$-conversion, but we do go into that right now.
+
+\subsubsection{The notation $\frac{P}{Q}$}
+If you're unfamiliar with this notation $\frac{P}{Q}$ (where $P,Q$ are truth statements), it simply shorthand for $P \Rightarrow Q$. Furthermore, large bodies of whitespace correspond to a conjunction. That is to say $\frac{P \quad Q}{R}$ is shorthand for $\frac{P \land Q}{R}$. Finally, if you see $\frac{}{Q}$, this means that $Q$ is unconditionally true. That is, $Q$ is an axiom.

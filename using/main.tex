@@ -1,12 +1,118 @@
-\subsection{Translating against Protocols}
-\import{./}{protocol}
+% \subsection{Translating against Protocols}
+% \import{./}{protocol}
 
-\subsection{Translating into \texorpdfstring{$\pi$}{pi}-calculus}
-\import{./}{pi}
+% \subsection{Translating into the \texorpdfstring{$\pi$}{pi}-calculus}
+% \import{./}{pi}
 
-\todo{Add subsubsections per construct}
-\subsection{Translating into Higher Order \texorpdfstring{$\pi$}{pi}-calculus}
-\import{./}{hopi}
+% \todo{Add subsubsections per construct}
+% \subsection{Translating into the Higher-Order \texorpdfstring{$\pi$}{pi}-calculus}
+% \import{./}{hopi}
 
-\subsection{Checking for Deadlocks}
-\import{./}{deadlocks}
+% \subsection{Checking for Deadlocks}
+% \import{./}{deadlocks}
+
+To demonstrate the use of the specification, we have developed a series of examples for both session-typed the $\pi$-calculus and for HOS$\pi$.
+
+In each folder, there is a \texttt{examples/basic.maude} which contains examples demonstrating the basic examples for each construct.
+
+Furthermore, there are 5 distinct example scenarios that have been implemented:
+\begin{itemize}
+    \item \texttt{spi/examples/calculator}: This example involves a calculation server for boolean calculations.
+    \item \texttt{spi/examples/petition}: This example involves a petition server which tracks who has signed to the petition. 
+    \item \texttt{hospi/examples/calculator}: This example involves a calculation server offering both boolean and integer calculations. However this server sends code to the client who can spawn a mini server to do these calculations.
+    \item \texttt{hospi/examples/petition}: This example involves a petition server that takes $n \in \mathbb{N}$ signees from a client and tracks how many people have signed up to the petition.
+    \item \texttt{*/examples/api}: Both examples demonstrate an ATM system which allows for withdrawls, deposits, opening an account and checking your balance.
+\end{itemize}
+
+\subsection{Persistant State}
+One thing to realize with persistent servers is that the spawned process has no means of communication with the main server that will receive future requests. As the specification also has no means of performing a ``save" action to shared data, this requires a workaround.
+
+To this end, we create a ``storage" process, whose job it is to ``persist" the state. Thus, the spawned process, after completing it's work, will send the data to the storage process, and the main server will pick up this data from the spawned process.
+
+To persist the state, the storage process attempts to send data immediately after it receives it. Thus, while the sending action is blocked, state is saved. This means that we can ``save" data till we next need it.
+
+\subsection{Session Types}
+\subsubsection{\code{spi/examples/calculator}}
+In this example, there are two relevant channels. $(g_1,g_2)$ which is what is used to initiate a calculation on the calculation server and $(c_1,c_2)$ which is what is used to transfer values between the client and the server.
+
+They're types are:
+\begin{align*}
+g_1 &: T_1 = \mu a . ! \bool . a\\
+c_1 &: T_2 = \mu a. \oplus \set{B : \oplus \set{O : S_2, A : S_2, X : S_2, N : S_1}}
+\end{align*}
+where
+\begin{align*}
+S_1 &=\ ! \bool . ? \bool . a \\
+S_2 &=\ ! \bool . ! \bool . ? \bool . a
+\end{align*}
+
+with
+\begin{align*}
+g_2 &: \dualf{T_1}\\
+c_2 &: \dualf{T_2}
+\end{align*}
+
+\subsubsection{\code{spi/examples/petition}}
+Note: In this example, we extended \code{spi} slightly to work with String operations.
+
+In this example, there are two relevant channels. $(x_1, x_2)$ is used to communicate signing requests to the petition server, and $(st_1, st_2)$ is used by the petition server and the storage server.
+They're types are:
+\begin{align*}
+x_1 &: T_1 = \mu a . ! \bool . \oplus \set{S : ! \String . a }\\
+st_1 &: T_2 = \mu a . ! \bool . ! \String . ? \String . a
+\end{align*}
+with
+\begin{align*}
+x_2 &: \dualf{T_1}\\
+st_2 &: \dualf{T_2}
+\end{align*}
+
+\subsubsection{\code{spi/examples/atm}}
+Note: In this example, we extended \code{spi} slightly to work with Natural number operations.
+
+In this example, there are two relevant channels. $(y_1, y_2)$ is used by the client to communicate with the ATM and $(z_1, z_2)$ is used by the ATM to communicate with the bank (its storage server).
+They're types are:
+\begin{align*}
+y_1 &: T_1 = \mu a . ? \bool . \&\set{W : ? \Nat . a  , D : \Nat . a , O : ? \Nat . a, C : ! \Nat . a}\\
+z_1 &: T_2 = \mu a . ? \bool . \&\set{S : ! \Nat . ? \Nat . a}
+\end{align*}
+with
+\begin{align*}
+y_2 &: \dualf{T_1}\\
+z_2 &: \dualf{T_2}
+\end{align*}
+
+\subsubsection{\code{hospi/examples/calculator}}
+Note: In this example, we extended \code{hospi} slightly to work with Natural number operations.
+
+In this example, there are two relevant channels. $g$ is used by the client to receive the code for a local calculation server, $x$ is used by the client to communicate with the local calculation server it spawns.
+\begin{align*}
+g &: \mu X . ? \lho{C} . X\\
+x &: \dualf{C}\\
+\end{align*}
+
+where
+\begin{align*}
+C &= \&\set{B : \&\set{O : B_2, A : B_2, X : B_2, N : B_1}, I : \&\set{P : I_2, M : I_2, S : I_2}} \\
+B_1 &=\ ? \bool . ! \bool . \et\\
+B_2 &=\ ? \bool . ? \bool . ! \bool . \et\\
+I_2 &=\ ? \Nat . ? \Nat . ! \Nat . \et\\
+\end{align*}
+
+\subsubsection{\code{hospi/examples/petition}}
+Note: In this example, we extended \code{hospi} slightly to work with Natural number operations.
+
+In this example, there are two relevant channels. $x$ is used by petition clients to communicate with the petition server, and $st$ is used by the petition server to communicate with its storage server.
+\begin{align*}
+x &: \mu X . ! \Nat . X \\
+st &: \mu X . ! \Nat . ? \Nat . X
+\end{align*}
+
+\subsubsection{\code{hospi/examples/atm}}
+Note: In this example, we extended \code{hospi} slightly to work with Natural number operations.
+
+In this example, there are two relevant channels. $x$ is used by the client to communicate with the ATM and $z$ is used by the ATM to communicate with the bank (its storage server).
+\begin{align*}
+y &: \mu X . \oplus\set{W : ! \Nat . X, D : ! \Nat . X, O : ! \Nat . X, C : ? \Nat . X }\\
+z &: \mu X . ! \Nat . ? \Nat . X
+\end{align*}

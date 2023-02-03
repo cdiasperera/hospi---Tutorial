@@ -21,6 +21,8 @@
 \section{Prelude}
 \import{prelude/}{main}
 
+\todo{Make sure that we link informal definitions to formal definitions in the appendix}
+
 \newpage
 \section{Formal syntaxes}
 \label{formsyn}
@@ -32,20 +34,8 @@
 \import{spec/}{main}
 
 \newpage
-\section{Using (Higher Order) \texorpdfstring{$\pi$}{pi}-calculus in Maude}
-To demonstrate the use of the specification, we have developed a series of examples for both session-typed $\pi$-calculus and for HOS$\pi$.
-
-In each folder, there is a \texttt{examples/basic.maude} which contains examples demonstrating the basic examples for each construct.
-
-Furthermore, there are 5 distinct example scenarios that have been implemented:
-\begin{itemize}
-    \item \texttt{spi/examples/calculator}: This example involves a calculation server for boolean calculations.
-    \item \texttt{spi/examples/petition}: This example involves a petition server which tracks who has signed to the petition. 
-    \item \texttt{hospi/examples/calculator}: This example involves a calculation server offering both boolean and integer calculations. However this server sends code to the client who can spawn a mini server to do these calculations.
-    \item \texttt{hospi/examples/petition}: This example involves a petition server that takes $n \in \mathbb{N}$ signees from a client and tracks how many people have signed up to the petition.
-    \item \texttt{*/examples/api}: Both examples demonstrate an ATM system which allows for withdrawls, deposits, opening an account and checking your balance.
-\end{itemize}
-% \import{using/}{main}
+\section{Using the (Higher-Order) \texorpdfstring{$\pi$}{pi}-calculus in Maude}
+\import{using/}{main}
 
 \newpage
 \input{bibliography/bib}

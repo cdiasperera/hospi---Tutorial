@@ -8,7 +8,7 @@ There are three broad parts to a Maude program (for our purposes):
     \item The execution of various functions on those entities (or inline defined entities)
 \end{enumerate}
 
-To load modules, we need the \code{load} command at the start of our file. Furthermore, you will need to use a \code{protecting} declaration on certain modules to avoid ``junk" being added (you will see what modules need to be protected in section \ref{using}).
+To load modules, we need the \code{load} command at the start of our file. Furthermore, you will need to use a \code{protecting} declaration on certain modules to avoid ``junk" being added (you will see what modules need to be protected in Section \ref{using}).
 
 To define entities, you have to define a formal \textbf{module}. To do this, we use the following syntax:
 
@@ -51,11 +51,13 @@ To define a function in Maude, there are two parts:
     \item Defining it's semantics in a functional style.
 \end{itemize}
 
-To define the signature we have the following (pseudo-)syntax\footnote{Note that this syntax isn't exactly mapping to that in Maude. The dots here are meant to represent a continuation of the space separated list of parameters to the $N$\textsuperscript{th} parameters}:
+To define the signature we have the following (pseudo-)syntax:
 
 \begin{verbatim}
 op functionName : Param1 Param2 ...  ParamN -> Result .
 \end{verbatim}
+
+Note that the above syntax isn't exactly the syntax used in Maude to define operators. The dots here are meant to represent a continuation of the space separated list of parameters to the $N$\textsuperscript{th} parameters.
 
 where \verb`Param1`, \verb`Param2`, \verb`ParamN`, \verb`Result` are types (called \textbf{sorts} in Maude). Note that it's possible to have $N = 0$ parameters.
 

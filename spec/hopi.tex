@@ -2,7 +2,7 @@ To define session channels (say $s$), we write \code{s\{0\}}. To define a shared
 
 To define the dual of a session / shared channel, we write: \code{*(x\{0\})} / \code{*(x(0))}.
 
-The following tables lists the process / type syntax for hos$\pi$ calculus and the corresponding syntax (with the (pseudo)-signature) in Maude:
+The following tables lists the process / type syntax for the HOS$\pi$ calculus and the corresponding syntax (with the (pseudo)-signature) in Maude:
 
 
 \newcommand{\tableline}[3]{#1 & #2 & \code{#3} \\ \hline}
@@ -11,7 +11,7 @@ The following tables lists the process / type syntax for hos$\pi$ calculus and t
 \centering
 \begin{tabular}{|c|c|c|}
 \hline
-Non-Terminal & HOS$\pi$ & Maude Signature  \\ \hline
+Non-Terminal & the HOS$\pi$ & Maude Signature  \\ \hline
 \tableline{$V$}{$\lambda x . P$}{op lambda('x') . P : Qid Trm -> Value}
 \tableline{$V$}{$\lambda (x : S) . P$}{op lambda('x' : S) . P : Qid Type -> Value}
 \tableline{$p$}{$x<v>$}{op 'x'{0}< v > : Chan Value -> Guard}
@@ -45,7 +45,7 @@ Note that \code{Choice < Choiceset}. That is a to say, a \code{choice} is also a
 \centering
 \begin{tabular}{|c|c|c|}
 \hline
-Non-Terminal & $\pi$-calculus & Maude Signature  \\ \hline
+Non-Terminal & The $\pi$-calculus & Maude Signature  \\ \hline
 \tableline{T}{$? T_1 . T_2$}{op ? T1 . T2 : Type SessionType -> SessionType}
 \tableline{T}{$! T_1 . T_2$}{op ! T1 . T2 : Type SessionType -> SessionType} 
 \tableline{T}{$\oplus{CT}$}{op +{CT} : ChoiceTSet -> SessionType}

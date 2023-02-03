@@ -1,17 +1,17 @@
-Concurrency in systems is an ongoing area of study, partly because it is so difficult anticipate the behavior of even small systems. The numerous ways in which elements in a concurrent system interact explodes the behavior they can take. Naturally, efforts have been made to model these systems formally \todo{Expand on this}, and one of these efforts come in the form of \textbf{process calculi}.
+Concurrency in systems is an ongoing area of study, partly because it is so difficult anticipate the behavior of even small systems. The numerous ways in which elements in a concurrent system interact explodes the behavior they can take. Naturally, efforts have been made to model these systems formally, \todo{Expand on this} and one of these efforts come in the form of \textbf{process calculi}.
 
-The family of process calculi is broad, but it's efforts (broadly) involve providing a mathematical formalization of concurrent systems, through a set of small but expressive set of constructs, much in a way lambda calculus does for sequential processes, or Turing Machines do for computational machines.
+The family of process calculi is broad, but its efforts (broadly) involve providing a mathematical formalization of concurrent systems, through a set of small but expressive set of constructs, much in a way lambda-calculus does for sequential processes, or Turing Machines do for computational machines.
 
-Most process calculi focus their efforts on modeling concurrent system as \textbf{processes}, through various syntactical constructs. These processes are then generally connected through some operator to represent these processes running in parallel. 
+Most process calculi are designed with the intention of modeling concurrent system as \textbf{processes}, through various syntactical constructs. These processes are then generally connected through some operator to represent these processes running in parallel. 
 
-And these systems can be anything, from a thread in a computer, to a host on the Internet. All because each process calculi proves that it can model sequential program as a process. For example, suppose that you have a program that runs on 10 threads, which each thread containing some sequential program. Each program can be written in $\lambda$-calculus \todo{link proof} and each of these programs can be written in $\pi$-calculus \todo{link proof}.
+And these systems can be anything, from a thread in a computer, to a host on the Internet. All because each process calculi proves that it can model sequential program as a process. For example, suppose that you have a program that runs on 10 threads, which each thread containing some sequential program. Each program can be written in $\lambda$-calculus \todo{link proof} and each of these programs can be written in the $\pi$-calculus \todo{link proof}.
 
 Furthermore, note that when we combine two processes via the aforementioned operator, \textit{we are creating a new process that can be used in the syntax like a sequential process}. This allows us to create processes that describe a variety of behavior.
 
-$\pi$-calculus is no different from other process calculus in this matter, and it is the foundation for the specification this tutorial covers. 
+The $\pi$-calculus is no different from other process calculus in this matter, and it is the foundation for the specification this tutorial covers. 
 
 \subsubsection{A short disclaimer}
 
-Before we describe $\pi$-calculus, it's worth giving a warning. In most programming languages, concurrent behavior is simply an extension of the existing sequential syntax (most like through a library). For example, to implement multi-threading in C, you might import the \verb`<pthread.h>` library. Ergo, multi-threaded programming in C is not too dissimilar from programming in C.
+Before we describe the $\pi$-calculus, it's worth giving a warning. In most programming languages, concurrent behavior is simply an extension of the existing sequential syntax (most like through a library). For example, to implement multi-threading in C, you might import the \verb`<pthread.h>` library. Ergo, multi-threaded programming in C is not too dissimilar from programming in C.
 
-However, $\pi$ calculus is \textbf{not} like this. $\pi$-calculus provides completely novel syntax, and the meaning behind this syntax is novel too. In this sense, $\pi$-calculus is a completely new journey, but one which we hope would be valuable to you.
+However, the $\pi$ calculus is \textbf{not} like this. $\pi$-calculus provides completely novel syntax, and the meaning behind this syntax is novel too. In this sense, $\pi$-calculus is a completely new journey, but one which we hope would be valuable to you.

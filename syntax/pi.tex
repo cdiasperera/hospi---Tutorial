@@ -1,103 +1,115 @@
 \todo{Ask Prof: I guess this is technically a session based $\pi$-calc. Worth specifying?}
 \subsubsection{Process Syntax}
-A process, in $\pi$-calculus, is defined recursively. With the fundamental operation being the ability to output values and to take in inputs, in some manner. To this end, we need to define a very what values can actually be passed. For the specification, we restrict ourselves to boolean values $\verb`true`, \verb`false`$, and of course, channel names themselves, which we will use the variables $x,y,z$ to range over\footnote{You might consider this quite limiting. Perhaps you'd like to pass around object, a la an Object-Oriented Programming paradigm, and call methods upon that object. Alas, this specification does not extend that ability, but there are extensions that be applied to $\pi$-calculus to allow this facility, see $https://www.di.fc.ul.pt/~vv/papers/vasconcelos_session-types-programming.pdf$. }.\todo{cite properly}
+A process (which is ranged over by $P,Q,R$), in the $\pi$-calculus, is defined recursively. With the fundamental operation being the ability to output values and to take in inputs, in some manner. To this end, we need to define a very what values can actually be passed. For the specification, we restrict ourselves to boolean values $\verb`true`, \verb`false`$, and of course, channel names themselves, which we will use the variables $x,y,z$ to range over.
 
-Thus, if we let $v$ range over all possible values, we have:
+You might consider this quite limiting. Perhaps you'd like to pass around object, a la an Object-Oriented Programming paradigm, and call methods upon that object. Alas, this specification does not extend that ability, but there are extensions that be applied to the $\pi$-calculus to allow this facility, see \href{https://www.di.fc.ul.pt/~vv/papers/vasconcelos_session-types-programming.pdf }{here}.
+
+\sss{Values}
+Let us now proceed to define the syntax of our $\pi$-caluclus. If we let $v$ range over all possible values, we have:
 
 \begin{align*}
     v ::= x \mid \text{true} \mid \text{false}
 \end{align*}
 
-Now, we will consider actually defining processes. It is defined recursively, so we will need some ``base" process, which we denote as $\ep$.
-
-Thus, let us let $P,Q,R$ range over processes. We initially have:
-
-\begin{align*}
-    P ::= \ep
-\end{align*}
-
-Next, we want some means of actually transferring values. Let us imagine a channel double-ended line, which processes can speak/listen at each end. To ``declare" such a line, we have the following syntax\footnote{Observe the seemingly recursive syntax. Readers unfamiliar with BNF notation might beleive that the $P$ on the LHS and RHS refer to the same process. However, this is an incorrect reading. Really, this defines a rewriting rule which says ``any instance of $P$ can be rewritten as the LHS. Of course, this can lead to an infinite process, but it could just as easily be finite ending with $\ep$, instead.}:
+\sss{Full process syntax}
+The full syntax for a process is as follows:
 
 \begin{align*}
-P ::= (\rest xy)P
+q &::= \un \mid \lin \\
+P &::= \ep \mid (\rest xy) P \mid \bar{x}v.P \mid q x(y). P \mid (P_1 \mid P_2) \mid \ifelsethen{v}{P_1}{P_2} \mid  x \offer \set{l_i : P_i}_{i \in I} \mid x \select l . P
 \end{align*}
+
+This might be quite overwhelming, but we will analyze this syntax by studying each form a process can take.
+
+Note that when discussing the interpretations of these terms, the syntax is not formally defining such interpretations. The operational semantics will more formally define these concepts. 
+
+\sss{End Process}
+As the $\pi$-calculus is defined recursively, so we will need some ``base" process, which we denote as $\ep$.
+
+Thus, we might have a process $P$ where:
+\begin{align*}
+    P = \ep
+\end{align*}
+
+\sss{Parallelization}
+
+Now, the key operator in the $\pi$-calculus is the parallelization operator. In the $\pi$-calculus, we actually define two processes that are in parallel to be a process itself!
+
+\begin{align*}
+    P = P_1 \mid P_2
+\end{align*}
+
+In some sense, this is the ``core" of the $\pi$-calculus.
+
+\sss{Restriction}
+Next, we want some means of actually transferring values. Let us imagine a channel double-ended conduit, which processes can speak/listen at each end. To ``declare" such a line, we have:
+
+\begin{align*}
+P = (\rest xy)P_1
+\end{align*}
+
+Which says that process $P$ can use endpoints $x,y$ to communicate between sub-processes in $P_1$.
 
 This declares that the resulting process $P$ can use $x,y$ are opposite endpoints of the same channel. You might wonder the use of this, since isn't the purpose of endpoints so that processes can communicate? Keep reading, it will be clearer as we move forward.
 
 Also note that in this process, we declare $x,y$ to be ``new" with respect to any other channel point everywhere. That is, we can only ``correctly" use $\rest$ upon $x,y$ if $x,y$ is used no where else in the process, either internally, or in processes that are in parallel with it. This is actually only enforced via the typing rules.
 
-\todo{Note that you can have multiple processes outputting / inputting along the same channel. Chosen non-deterministically.}
+This operation is known as a ``restriction", since we are restricting the use of these channel names to the process $P_1$.
 
+\sss{Output}
+Suppose
 \begin{align*}
-    P ::= \bar{x}v.P
+    P = \bar{x}v.P_1
 \end{align*}
 
-To mean that a process outputs the value $v$ on the channel $x$, and then continues as some other process. Note that in a well-defined process, by the time that the action is ``evaluated", $x$ will actually be a channel itself.
+This means that $P$ is a process outputs the value $v$ on the channel $x$, and then continues as the \textbf{continuation process} $P_1$. Note that in a well-defined process, by the time that the action is ``evaluated", $x$ will actually be a channel itself.
 
-We define input processes as such:
-
+\sss{Input}
+Suppose
 \begin{align*}
-    P ::= x(y).P
+    P = q x(y).P_1
 \end{align*}
 
-This means that upon channel $x$, we get some input, and any instance of $y$ in $P$ is replaced with the value we picked up.
+The above statement means that $P$ is a process which takes in input upon from endpoint $x$ and any instance of $y$ in $P$ is replaced with the value we picked up.
 
-Note two things: These intuitions of what these terms represent isn't defined at all, you're currently just being told it does that. Operational semnatics will more formally define these concepts. Secondly, observe that currently, any arbitrary value can be put into $y$. This is dangerous, since perhaps the resulting process excepts $y$ to be a channel. Typing will prevent such a situation!
-
-Now, the key operator is the parallelization operator. In $\pi$-calculus, we actually define two processes that are in parallel to be a process itself!
+Now, generally speaking, we might wish for our process to continue indefinitely (say, if it's representing a server for an API). This is the purpose of the $q$ qualifier in the process $P$. To this end, we introduce the $\un$ and $\lin$ qualifiers:
 
 \begin{align*}
-    P ::= P_1 \mid P_2
+    q = \un \mid \lin
 \end{align*}
 
-Now, the $\rest$ operator makes a bit more sense. The two processes in parallel can communicate through the channel. For example, $(\rest xy) Q \mid P$, can have $Q$ and $P$ communicate if $Q$ uses $x$ as a channel endpoint and $P$ uses $y$ as a channel endpoint.
+which prefix our input types (thus resulting in a slight modification for our input definition):
 
-In some sense, this is the ``core" of $\pi$-calculus. However, we can extend it in a few useful ways:
+An input action prefixed by $\lin$ corresponds to our current understanding of input actions, meaning that once the input is taken, the continuation process $P_1$ runs with the corresponding substitution.
 
+However, if the input action is prefixed by $\un$, then this \textit{also} implies a \textbf{new} process spawns that is exactly the same as the process $P$ (before the input arrived). Or equivalently (and this is the interpretation we will be proceeding with), we spawn a process $P[v/y]$ (where $v$ is the value being inputted), and the process continues, acting as if nothing happened.
+
+\sss{Conditional Processes}
 Thus far, we haven't introduced any syntax that takes advantage of the boolean value. To introduce the familiar concept of conditional statements, we have the following syntax:
 
 \begin{align*}
-    P ::= \ifelsethen{v}{P_1}{P_2}
+    P = \ifelsethen{v}{P_1}{P_2}
 \end{align*}
 
 This is a process where if the received value $v$ is $\text{true}$ then $P_1$ is run, otherwise $P_2$ is run.
 
-Furthermore, our syntax is constantly progressing our process towards an end state, though perhaps we might wish that the process continues indefinitely. As a more practical matter, if we wish for our process to take in 100 inputs, writing such a process would be laborious. To this end, we intro the $\un$ and $\lin$ prefixes:
+\sss{Branching}
+Lastly, suppose we wished to offer a selection of possible processes that might run, after some input. This somewhat can be done with our conditional processes mentioned earlier, with a logarithmically scaling amount of input actions required before a choice can be made. The $\pi$-calculus offers concise notation:
 
 \begin{align*}
-    q ::= \un \mid \lin
-\end{align*}
-
-which prefix our input types (thus resulting in a slight modification for our input definition:
-
-\todo{Ask Prof: Why do we only allow this qualifier syntax for inputs? Why can't any operation have this?}
-\todo{Define guard}
-\begin{align*}
-    P ::= q x(y).P
-\end{align*}
-
-An input action prefixed by $\lin$ corresponds to our current understanding of input actions, meaning that once the input is taken, the subsequent process runs with the corresponding substitution.
-
-However, if the input action is prefixed by $\un$, then this \textit{also} implies a \textbf{new} process spawns that is exactly the same as the process, before the input arrived. Or equivalently (and this is the interpretation we will be proceeding with), we spawn a process $P[v/y]$ (where $v$ is the value being inputted), and the process continues, acting as if nothing happened.
-
-Lastly, suppose we wished to offer a selection of possible processes that might run, after some input. This somewhat can be done with our conditional processes mentioned earlier, with a logarithmically scaling amount of input actions required before a choice can be made. $\pi$-calculus offers concise notation:
-
-\begin{align*}
-    P &::= x \offer \set{l_i : P_i}_{i \in I} \\
-    P &::= x \select l.P 
+    P &= x \offer \set{l_i : P_i}_{i \in I} \\
+    P &= x \select l.P 
 \end{align*}
 
 The top process indicate that it expects another process to send through channel $x$ a label from the set $I$, upon which it will run the corresponding process. The bottom process indicates that the process will send label $l$ through channel x.
 
-\todo{Put an example of an invalid process here}
-
 \subsubsection{Operational Semantics}
 
-When discussing the syntax for processes above, we gave some intuitions for what that syntax meant, in terms of how it interacted with other processes, i.e: how that term contributes to overall process evolution. Broadly, this is known as the \textbf{operational semantics} of $\pi$-calculus, and we will now more formally describe these.
+When discussing the syntax for processes above, we gave some intuitions for what that syntax meant, in terms of how it interacted with other processes, i.e: how that term contributes to overall process evolution. Broadly, this is known as the \textbf{operational semantics} of the $\pi$-calculus, and we will now more formally describe these.
 
 These are written as reductions with the $\ra$ relation. Informally, you can interpret $P \ra P'$ to mean that $P$ becomes $P'$ after one step of the evolution (i.e: a \textit{reduction}).
 
-The first rule we introduce involve value passing into an input action with the $\lin$ qualifier\footnote{Observe the notation $Q[v/z]$. You can interpret this as re-writing $Q$ except we replace all instances of $z$ with $v$. Note there are some intricacies involved, involving the notions of $\alpha$-conversion, but we do go into that right now.}:
+The first rule we introduce involve value passing into an input action with the $\lin$ qualifier.:
 
 $$(\rest xy)(\bar{x}v.P \mid \lin y(z).Q \mid R) \ra (\rest xy)(P \mid Q[v/z]\mid R)$$
 
@@ -105,11 +117,11 @@ This rule dictates that if from process $\bar{x}v.P$ we are outputting value $v$
 
 A similar rule involves value passing into an input action with the $\un$ qualifier:
 
-$$(\rest xy)(\bar{x}v.P \mid \un y(z).Q \mid R) \ra (\rest xy)(P \mid Q[v/z]\mid \un y(z).Q \mid \mid R)$$
+$$(\rest xy)(\bar{x}v.P \mid \un y(z).Q \mid R) \ra (\rest xy)(P \mid Q[v/z]\mid \un y(z).Q \mid R)$$
 
 This rule dictates the same semantics as the previous rule, with the exception that using $\un y(z).Q$ replicates it.
 
-The last rule we present for communication involves communication via labels\footnote{If you're unfamiliar with this notation $\frac{P}{Q}$, it simply shorthand for $P \Rightarrow Q$. Furthermore, large bodies of whitespace correspond to a conjunction. That is to say $\frac{P \quad Q}{R}$ is shorthand for $\frac{P \land Q}{R}$. Finally, if you see $\frac{}{Q}$, this means that $Q$ is unconditionally true}:
+The last rule we present for communication involves communication via labels.:
 
 $$\frac{j \in I}{(\rest xy)(x \select l_j . P \mid y \offer \set{l_i : Q_i}_{i \in I} \mid R) \ra (\rest xy)(P \mid Q_j \mid R)}$$
 
@@ -119,10 +131,10 @@ One interesting observation you might have made at this point is that all these 
 
 The following rules relate to ``internal" evolution, where if a process can evolve without outside interference, it can also do so, if it is in parallel with another operation, or if it under restriction of some channel:
 
-$$
+\begin{gather*}
 \frac{P \ra P'}{P \mid Q \ra P' \mid Q} \\
 \frac{P \ra P'}{(\rest xy)P \ra (\rest xy) P')}
-$$
+\end{gather*}
 
 You might be curious why the former rule doesn't have an equivalent rule, for $Q \ra Q'$. We will see that \textbf{structural congruence} (defined below) covers this implicitly.
 
@@ -154,7 +166,7 @@ $$
 (\rest xy)(\rest wz)P \equiv (\rest wz)(\rest xy)P
 $$
 
-Next we define how how $\ifelsethen{}{}{}$ actually operates \footnote{You might wonder if this couldn't have been defined as part of the operational semantics. It potentially could've, but note that defining something to be structurally congruent is actually a stronger claim, and thus, it is defined in this manner}
+Next we define how how $\ifelsethen{}{}{}$ actually operates:
 \todo{Ask prof: Why don't we define the true/false struct cong as op sems?}
 
 \begin{align*}
@@ -162,10 +174,12 @@ Next we define how how $\ifelsethen{}{}{}$ actually operates \footnote{You might
 \ifelsethen{\text{false}}{P_1}{P_2} &\equiv P_2
 \end{align*}
 
-Lastly, suppose we have some process $(\rest xy)P$. This means that $x,y$ is only used within $P$. If you parallely compose it with $Q$ which does not ``outwordly" use $x,y$, it means you can expand the scope of the restriction over it:
+You might wonder if this couldn't have been defined as part of the operational semantics. It potentially could've, but note that defining something to be structurally congruent is actually a stronger claim, and thus, it is defined in this manner.
+
+Lastly, suppose we have some process $(\rest xy)P$. This means that $x,y$ is only used within $P$. If you parallely compose it with $Q$ which does not ``outwardly" use $x,y$, it means you can expand the scope of the restriction over it:
 
 
-What do we mean by ``outwordly" compose? This means that you could, in principle, rename the $x,y$ in $Q$ without changing the behavior of $Q$. In a formal sense, we say that these $x,y$ in $Q$ are ``bound" to $Q$. All such $x,y$ in $Q$ are in the set $bv(Q)$. Any other identifiers in $Q$ that are not in $bv(Q)$ are in $fv(Q)$. So we formally express this intuition as:
+What do we mean by ``outwardly" compose? This means that you could, in principle, rename the $x,y$ in $Q$ without changing the behavior of $Q$. In a formal sense, we say that these $x,y$ in $Q$ are ``bound" to $Q$. All such $x,y$ in $Q$ are in the set $bv(Q)$. Any other identifiers in $Q$ that are not in $bv(Q)$ are in $fv(Q)$. So we formally express this intuition as:
 
 $$
 x,y \notin fv(Q) \implies (\rest xy)P \mid Q \equiv (\rest xy)(P \mid Q)
@@ -173,25 +187,33 @@ $$
 
 \todo{Probs put this in the appendix, check with Prof about labels}
 
-So which values are in $fv(Q)$? We can perform this inductively, upon the structure of a process:
+So which values are in $fv(Q)$? Formally, $fv(Q)$ is defined as the set of variables that are not bound in $Q$. A bound variable is a variable that is binded by the input or restriction actions. That is in:
+\begin{gather*}
+Q = qx(y).P \\
+R = (\rest y_1, y_2) P
+\end{gather*}
+
+The input action in $Q$ binds $y$ and the restriction action in $R$ binds $y_1, y_2$.
+
+It might be worth exploring this definition in practice. Say you wished to determine the free variables in $Q$. We can perform this inductively, upon the structure of a process:
 
 \begin{itemize}
-    \item $\ep$: No free variables are added
-    \item $\bar{x}v.P$: $fv(P), x,v$ are added to the list of free variables
-    \item $q x(y).P$: $fv(P), x$ is added to the list of free variables but $y$ is \textbf{not}. This is because if we wanted to use $y$ at some other restriction, we can simply rename $y$ and all instance of $y$ in $P$.
-    \item $P_1 \mid P_2$: $fv(P_1), fv(P_2)$ are added to the list of free variables
-    \item $(\rest xy)P$: $fv(P)$ is added to the list of free variables but \textbf{not} $x,y$. Again, if we wanted to use $x,y$ in some other restriction, we can rename all instances of it in $P$ as well to something else.
-    \item $\ifelsethen{v}{P_1}{P_2}$: $v,P_1, P_2$ are added
-    \item $x \offer \set{l_i : P_i}_{i \in I}$: $x$ and $\forall i \in I: fv(P_i), l_i$ are added to
-    \item $x \select l.P$: $x, fv(P), l$ are added
+    \item $Q = \ep$: No free variables are added
+    \item $Q = \bar{x}v.P$: $fv(P), x,v$ are added to the list of free variables
+    \item $Q = q x(y).P$: $fv(P), x$ is added to the list of free variables but $y$ is \textbf{not}. This is because if we wanted to use $y$ at some other restriction, we can simply rename $y$ and all instance of $y$ in $P$.
+    \item $Q = P_1 \mid P_2$: $fv(P_1), fv(P_2)$ are added to the list of free variables
+    \item $Q = (\rest xy)P$: $fv(P)$ is added to the list of free variables but \textbf{not} $x,y$. Again, if we wanted to use $x,y$ in some other restriction, we can rename all instances of it in $P$ as well to something else.
+    \item $Q = \ifelsethen{v}{P_1}{P_2}$: $v,fv(P_1), fv(P_2)$ are added to the list of free variables.
+    \item $Q = x \offer \set{l_i : P_i}_{i \in I}$: $x$ and $\forall i \in I: fv(P_i), l_i$ are added to the list of free variables.
+    \item $Q = x \select l.P$: $x, fv(P), l$ are added to the list of free variables.
 \end{itemize}
 
-\subsubsection{Typing rules}
-As mentioned earlier, our syntax surrounding $\pi$-calculus is too loose, in that they don't necessarily conform to our intuition behind their usage, or you can create processes that do nothing / don't make sense. To resolve this, we turn to typing.
+\subsubsection{Type Syntax}
+As mentioned earlier, our syntax surrounding the $\pi$-calculus is too loose, in that they don't necessarily conform to our intuition behind their usage, or you can create processes that do nothing / don't make sense. To resolve this, we turn to typing.
 
 Now, we do not actually type processes, since processes aren't true values of calculus. Rather, what we are (mainly) typing is the ``behavior" of channel endpoints themselves. That is, if we have some process, its free names must correspond to some protocol (as specified by the type of that endpoint). We consider this information (regarding channel typing) the ``context" of our process.
 
-Making sure that our processes satisfy its context is a recursive process, as processes are built on top of processes. As we delve deeper into a process to ensure it's satisfaction of a type, the context required for the evaluation will also change\footnote{As a brief concrete example, evaluating the a process under restriction will bring the channel under restriction into the context, thus evolving our context.}, and these modified contexts are what allows us to ensure the internal consistency of our processes\footnote{Note that this explanation might be too abstract, which is fine. It becomes clearer once you see the actual rules and some examples}.
+Making sure that our processes satisfy its context is a recursive process, as processes are built on top of processes. As we delve deeper into a process to ensure it's satisfaction of a type, the context required for the evaluation will also change, and these modified contexts are what allows us to ensure the internal consistency of our processes. As a brief concrete example, evaluating the a process under restriction will bring the channel under restriction into the context, thus evolving our context.This explanation might be too abstract, which is fine. It becomes clearer once you see the actual rules and some examples.
 
 Before we turn to typing, we will introduce one one concept upon channels. Recall we mentioned that free variables in a process need to correspond to some protocol. Some protocols require that a channel endpoint can only be used by \textbf{one} process. That is, it cannot jump between processes. To this end, we specify such endpoints with $\lin$, and other endpoints with $\un$.
 
@@ -199,11 +221,25 @@ Note that it's important to decouple the meanings of $\lin, \un$ with respect to
 
 Now, before we define these typing rules, we need some means of actually \textit{writing} a type, which we now present.
 
+\sss{Full Typing Syntax}
+Below is the full syntax for types:
+
+\begin{align*}
+p &::=\ !T_1.T_2 \mid ?T_1.T_2 \mid \&\set{l_i : T_i}_{i \in I} \mid \oplus \set{l_I : T_i}_{i \in I} \\
+T &::=\ \et \mid \bool \mid q p \mid \mu a . T \mid
+\end{align*}
+
+As with our process syntax, we will now explore these constructs indivdually
+
+\sss{Base Cases}
 We define a type $T$ recursively, with a base case being the type of channel endpoint that does nothing (i.e: $\ep$) and a Boolean value, respectively:
 
-$$
-T ::= \et \mid \bool
-$$
+\begin{gather*}
+T_1 = \et \\
+T_2 = \bool
+\end{gather*}
+
+\sss{Types for channel operations}
 
 Now, suppose a process involves either:
 \begin{itemize}
@@ -216,47 +252,52 @@ If you consider it, these operations do not actually involve the usage of a chan
 
 However, the remaining operators (input / output / branching / selection ) \textit{do} involve the usage of a channel, and they have the following syntactic elements:
 
-$$
-p ::= !T_1.T_2 \mid \ ?T_1.T_2 \mid \&\set{l_i : T_i}_{i \in I} \mid \oplus \set{l_i : T_i}_{i \in I}
-$$
+\begin{align*}
+p_1 &=\ !T_1.T_2 \\
+p_2 &=\ ?T_1.T_2 \\
+p_3 &=\ \&\set{l_i : T_i}_{i \in I} \\
+p_4 &=\ \oplus \set{l_i : T_i}_{i \in I} \\
+ \end{align*}
 
-If we have some statement $x : T$, with $T$ being some type form from above:
+If we have some statement $x : q p_j$, then with:
 \begin{itemize}
-    \item This channel outputs a value with type $T_1$ and then channel $x$ acts according to $T_2$
-    \item This channel takes in an input with type $T_1$ and then channel $x$ acts according to $T_2$
-    \item This channel takes in some label $l_i$, and then acts as $T_i$, for each $i \in I$
-    \item This channel outputs some label some label $l_i$, and then acts as $T_i$, for each $i \in I$.
+    \item $j = 1$: This channel outputs a value with type $T_1$ and then channel $x$ acts according to $T_2$
+    \item $j = 2$: This channel takes in an input with type $T_1$ and then channel $x$ acts according to $T_2$
+    \item $j = 3$: This channel takes in some label $l_i$, and then acts as $T_i$, for each $i \in I$
+    \item $j = 4$: This channel outputs some label, and then acts as the continuation type $T_i$, if it sent $l_i$.
 \end{itemize}
 
-If you read the last two type carelessly, you might be led to believe that a label has a type, but $T_i$ reflects the \textit{continuation type} of a channel, after the corresponding action has been taken. Furthermore, for a selection type ($\oplus$), the type $T_i$ is the continuation type for the process that is doing the selection, and is not the continuation type for the other process that responds to the selection.
+If you read the last two types carelessly, you might be led to believe that a label has a type, but $T_i$ reflects the \textit{continuation type} of a channel, after the corresponding action has been taken. Furthermore, for a selection type ($\oplus$), the type $T_i$ is the continuation type for the process that is doing the selection, and is not the continuation type for the other process that responds to the selection.
 
 Observe that we define $p$, but not additional elements of $T$. This is because all these operations act on a channel, which can be linear  or unrestricted. In this sense, it is a \textbf{pretype}.
 
-To use it, we have to combine it with a the linear ($\lin$) or unrestricted ($\un$) \textbf{qualifier}:
+To use it, we have to combine it with a the linear ($\lin$) or unrestricted ($\un$) \textbf{qualifier}. Hence, we might have a type:
 
 $$
-T ::= q\ p
+T = q\ p
 $$
+
+\sss{Infinite Behavior / Replication}
 
 Lastly, one might wonder how we type a process that is replicating (that is, has a $\un$ prefix). To do this, we essentially explicitly type it as such:
 
 $$
-T ::= \mu a.T
+T = \mu a.T_1
 $$
 
-This is relatively novel syntax, but essentially, it defines $a$ to be a type variable that may appear in $T$, that represents $T$ itself. So, for example
+This is relatively novel syntax, but essentially, it defines $a$ to be a type variable that may appear in $T_1$, that represents $T_1$ itself. So, for example
 
 $$
-\mu a. \un ?\ bool . a
+\mu a. \un ?\bool . a
 $$
 
 is equivalent to
 
 $$
-\mu a . \un ?\ bool . \un ?\ bool . a
+\mu a . \un ?\ \bool .\ \un ?\ \bool . a
 $$
 
-showing that we can endlessly replicate the $T$ part of $\mu a . T$, hence typing replication.
+showing that we can endlessly replicate the $T$ part of $\mu a . T$, hence typing infinite behavior.
 
 Lastly, recall we spoke of a context. We formalize this notion in $\Gamma$, where $\Gamma$ is the context under which our typing rules are evaluated:
 
@@ -268,9 +309,11 @@ This reads that the base context is the empty set, and we can add to this contex
 
 And thus, this defines our typing syntax!
 
+\subsubsection{Typing Rules}
 
-\textbf{Note: The rest of this subsection discusses and presents how typing rules actually enforce all the intuitions / assertions of the behavior of syntactic elements we've since discussed. It's not essential to read, but reading this section will probably fix any incorrect understanding of those intuitions. A more practical reader would probably skip this section and come back when a type doesn't seem to work as expected.}
+\textbf{Note: This subsection discusses and presents how typing rules actually enforce all the intuitions / assertions of the behavior of syntactic elements we've since discussed. It's not essential to read, but reading this section will probably fix any incorrect understanding of those intuitions. A more practical reader would probably skip this section and come back when a type doesn't seem to work as expected.}
 
+\sss{Typing rules for values}
 First, we will type actual values, such as channels and boolean values. Recall that processes aren't values themselves, in the sense you cannot pass processes through channels. Such typing rules will have form:
 
 $$
@@ -297,6 +340,7 @@ The first two rules are fairly straight-forward. It says that it types $\true, \
 \item This rule basically ensures that $x$ is defined in the context, and since the output context contains $x$ it must also ensure that $x$ isn't a linear endpoint, which is what $\unf{T}$ does.
 \end{enumerate}
 
+\sss{Typing rules for processes}
 Now, we will give the typing rules associated with processes. Recall that we do not type processes directly. The purpose of the subsequent typing process is two-fold.
 
 \begin{enumerate}
@@ -314,31 +358,39 @@ To this end, the typing rules associated with processes are written as follows: 
 As you encounter each typing rule (or pair of corresponding rules) we will provide an intuition behind the rule on how to read it, and the purpose of the rule, in terms of the behavior it is trying to enforce.
 \todo{Change this a bit}
 
-Because processes are written recursively, naturally the typing rules are written recursively. As $\ep$ is the base process, our first typing rule involves typing $\ep$, as you might expect:
-
+\sss{Typing rule(s) for $\ep$}
 $$
 \Gamma \vdash \ep ; \Gamma ; \emptyset
 $$
 
+Because processes are written recursively, naturally the typing rules are written recursively. As $\ep$ is the base process, our first typing rule involves typing $\ep$, as you might expect:
+
 This rule is read as ``You can type $\ep$ with any context, with the remaining context being the input context, and it uses no linear variables".
 
+\sss{Typing rule(s) for parallel processes}
 $$
 \frac{\Gamma_1 \vdash P : \Gamma_2 ; L_1 \quad \Gamma_2 \td L_1 \vdash Q : \Gamma_2 ; L_2}{\Gamma_1 \vdash P \mid Q : \Gamma_3 ; L_2}
 $$
 
 The idea behind this rule is that it types the two parallel processes independently, but it gets the set of linear variables used by $P$ and makes sure that $Q$ can be typed correctly without having that variable in the context.
 
+\sss{Typing rule(s) for processes under restriction}
 $$
 \frac{\Gamma_1, x : T, y : \bar{T} \vdash P : \Gamma_2 ; L}{\Gamma_1 \vdash (\rest xy : T) P : \Gamma_2 \td \set{x,y} ; L \setminus \set{x,y}}
 $$
 
 The idea here is that to type a process under restriction, if we lift those channels endpoints to the greater context, it should be able to type the inner process. Observe that $(\rest xy : T)$. To improve the efficiency of the type-checking algorithm, we must supply the type of the restricted channel endpoints when we check our process. In principle, we should know this when we type our process, since we should be using our restricted channel inside $P$, and we type $T$ along how it's used in $P$.
 
+
+\sss{Typing rule(s) for conditional processes}
 $$
 \frac{\Gamma_1 \vdash v : q\  \bool ; \Gamma_2 \quad \Gamma_2 \vdash P : \Gamma_3 ; L \quad \Gamma_2 \vdash Q : \Gamma_3 ; L}{\Gamma_1 \vdash \ifelsethen{v}{P}{Q} : \Gamma_3 ; L}
 $$
 
 The idea here is that we check that $v$ is indeed a boolean variable, and that $P$ and $Q$ are type-correct under the same context, since they will be run in the same context, after one is chosen to be run.
+
+
+\sss{Typing rule(s) for value passing}
 
 The next pair of rules define passing values along a channel
 
@@ -367,6 +419,8 @@ To check input along a channel, we again have three jobs:
 \end{enumerate}
 
 For our output, we ensure that $y$ is not present in the output context / set of linear variables, and that we add $x$ to the set of variables that shouldn't be used in another thread ($L$) if $x$ is a linear endpoint.
+
+\sss{Typing rule(s) for branching}
 
 The next pair of rules define branching / selection.
 
